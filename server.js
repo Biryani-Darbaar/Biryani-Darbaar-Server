@@ -1,5 +1,5 @@
 const morgan = require("morgan");
-const logger = require("../logger"); // Import the logger
+const logger = require("./logger"); // Import the logger
 const express = require("express");
 const admin = require("firebase-admin");
 const multer = require("multer");
@@ -12,7 +12,7 @@ const bodyParser = require("body-parser");
 require("firebase/auth");
 
 // Initialize Firebase Admin SDK
-const serviceAccount = require("../serviceAccountKey.json"); // Path to your Firebase service account key
+const serviceAccount = require("./serviceAccountKey.json"); // Path to your Firebase service account key
 // const {
 //   log,
 // } = require("@angular-devkit/build-angular/src/builders/ssr-dev-server");
@@ -47,6 +47,7 @@ const upload = multer({
   storage: multer.memoryStorage(), // Store the file in memory temporarily
 });
 
+// Route to upload images and store metadata in Firestore
 app.post("/dishes", upload.single("image"), async (req, res) => {
   const dishData = JSON.parse(req.body.dishData); // Parse the JSON data sent by the client
   const file = req.file; // The uploaded image
@@ -552,5 +553,7 @@ app.delete("/img", async (req, res) => {
 });
 
 
-
-module.exports = app;
+const port = 3000;
+app.listen(port, () => {
+  logger.info(`Server is running on port ${port}`);
+});

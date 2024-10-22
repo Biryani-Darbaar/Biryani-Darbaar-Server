@@ -1,0 +1,398 @@
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T19:17:16.016Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:19:18:00 +0000] \"GET /dishes HTTP/1.1\" 200 774 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0\"","timestamp":"2024-10-19T19:18:00.440Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T19:36:20.316Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:19:36:26 +0000] \"GET /dishes HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0\"","timestamp":"2024-10-19T19:36:26.207Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:00:46.981Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:01:11.042Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:01:43.731Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:02:45.839Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:03:50.589Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:05:03.549Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:07:55 +0000] \"POST /img HTTP/1.1\" 201 1499 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-19T20:07:55.350Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:08:09 +0000] \"GET /img HTTP/1.1\" 200 2649 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-19T20:08:09.025Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:13:35 +0000] \"GET /img HTTP/1.1\" 200 2649 \"http://localhost:8100/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0\"","timestamp":"2024-10-19T20:13:35.490Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:13:35 +0000] \"GET /img HTTP/1.1\" 200 2649 \"http://localhost:8100/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0\"","timestamp":"2024-10-19T20:13:35.640Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:13:57 +0000] \"GET /img HTTP/1.1\" 200 2649 \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T20:13:57.147Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:13:57 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T20:13:57.251Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:13:58 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T20:13:58.418Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:13:58 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T20:13:58.497Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:15:07 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T20:15:07.760Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:15:10 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:15:10.297Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:15:10 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T20:15:10.738Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:15:11 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:15:11.440Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:16:45.425Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:16:54 +0000] \"GET /img HTTP/1.1\" 200 2761 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:16:54.194Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:16:54 +0000] \"GET /img HTTP/1.1\" 200 2761 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:16:54.330Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:17:06.980Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:17:48.879Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:17:57 +0000] \"GET /img HTTP/1.1\" 200 2250 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:17:57.121Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:17:57 +0000] \"GET /img HTTP/1.1\" 200 2250 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:17:57.279Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:18:14 +0000] \"GET /img HTTP/1.1\" 200 2250 \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T20:18:14.914Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:18:15 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T20:18:15.018Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:19:14 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T20:19:14.730Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:19:17 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:19:17.107Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:20:41 +0000] \"GET /img HTTP/1.1\" 200 2250 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:20:41.525Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:20:41 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:20:41.567Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:21:33 +0000] \"GET /img HTTP/1.1\" 200 2250 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:21:33.083Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:21:33 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:21:33.213Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:21:42 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T20:21:42.737Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:21:42 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T20:21:42.828Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:22:42 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T20:22:42.182Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:22:42 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T20:22:42.366Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:23:09.386Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:23:42.874Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:23:55.288Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:24:27 +0000] \"DELETE /img HTTP/1.1\" 200 45 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-19T20:24:27.735Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:26:05 +0000] \"POST /img HTTP/1.1\" 201 611 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-19T20:26:05.090Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:26:13 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:26:13.300Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:26:13 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:26:13.533Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:29:06.146Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:29:54.679Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:30:33.634Z"}
+{"level":"error","message":"Error uploading images: Cannot convert object to primitive value","stack":"TypeError: Cannot convert object to primitive value\n    at C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\server.js:425:24\n    at Layer.handle [as handle_request] (C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at done (C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\node_modules\\multer\\lib\\make-middleware.js:45:7)\n    at indicateDone (C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\node_modules\\multer\\lib\\make-middleware.js:49:68)\n    at Multipart.<anonymous> (C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\node_modules\\multer\\lib\\make-middleware.js:166:7)\n    at Multipart.emit (node:events:519:28)\n    at emitCloseNT (node:internal/streams/destroy:147:10)\n    at process.processTicksAndRejections (node:internal/process/task_queues:81:21)","timestamp":"2024-10-19T20:30:58.892Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:30:58 +0000] \"POST /img HTTP/1.1\" 500 35 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-19T20:30:58.897Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:31:06.037Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:31:10 +0000] \"POST /img HTTP/1.1\" 201 621 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-19T20:31:10.586Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T20:32:06.632Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:37:06 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T20:37:06.210Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:20:37:06 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T20:37:06.312Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:45:19 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0\"","timestamp":"2024-10-19T20:45:19.592Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:45:19 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0\"","timestamp":"2024-10-19T20:45:19.664Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:45:21 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:45:21.975Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:45:22 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:45:22.010Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:46:34 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:46:34.679Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:46:43 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:46:43.477Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:46:46 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:46:46.882Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:46:48 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:46:48.552Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:46:57 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:46:57.690Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:46:58 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:46:58.733Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:47:03 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:47:03.756Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:47:05 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:47:05.911Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:48:12 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:48:12.753Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:48:13 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:48:13.797Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:48:15 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:48:15.805Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:48:24 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:48:24.886Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:48:31 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:48:31.436Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:48:31 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:48:31.476Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:48:50 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:48:50.576Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:49:03 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:49:03.967Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:49:12 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:49:12.834Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:49:14 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:49:14.289Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:49:14 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:49:14.322Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:49:15 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:49:15.636Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:49:15 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:49:15.674Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:49:30 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:49:30.950Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:49:33 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:49:33.513Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:49:34 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:49:34.540Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:49:36 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:49:36.345Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:49:36 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:49:36.384Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:49:38 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:49:38.075Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:49:38 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:49:38.112Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:50:36 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:50:36.308Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:51:04 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:51:04.292Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:51:07 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:51:07.624Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:51:23 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:51:23.552Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:51:25 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:51:25.419Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:51:42 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:51:42.534Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:54:43 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:54:43.538Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:54:58 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:54:58.343Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:55:00 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:55:00.419Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:55:04 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:55:04.726Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:55:17 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:55:17.674Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:55:19 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:55:19.072Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:55:22 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:55:22.209Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:55:40 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:55:40.415Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:55:42 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:55:42.858Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:55:48 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:55:48.213Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:55:56 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:55:56.014Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:56:05 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:56:05.820Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:56:07 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:56:07.187Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:56:11 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:56:11.155Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:56:20 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:56:20.770Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:57:37 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:57:37.647Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:57:39 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:57:39.862Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:57:43 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:57:43.710Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:58:08 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:58:08.477Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:20:58:08 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T20:58:08.698Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:21:16:47 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T21:16:47.306Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:21:16:47 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1\"","timestamp":"2024-10-19T21:16:47.385Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T22:02:46.515Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:22:02:52 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T22:02:52.144Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:22:02:52 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T22:02:52.193Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:22:04:20 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T22:04:20.718Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:22:04:20 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T22:04:20.813Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:22:14:22 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T22:14:22.964Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T22:16:19.801Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-19T22:23:42.643Z"}
+{"level":"info","message":"::1 - - [19/Oct/2024:22:23:43 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T22:23:43.540Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:22:23:54 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T22:23:54.686Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:22:30:43 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T22:30:43.528Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:22:30:43 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T22:30:43.578Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:22:30:55 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T22:30:55.347Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:22:30:55 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T22:30:55.384Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:22:31:17 +0000] \"GET /img HTTP/1.1\" 200 866 \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T22:31:17.357Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:22:31:17 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T22:31:17.400Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:22:51:53 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T22:51:53.335Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:22:51:53 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T22:51:53.567Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Oct/2024:22:51:58 +0000] \"GET /img HTTP/1.1\" 304 - \"http://localhost:8100/\" \"Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36\"","timestamp":"2024-10-19T22:51:58.121Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T17:14:26.598Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T18:09:42.409Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:18:09:46 +0000] \"GET /img HTTP/1.1\" 200 866 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T18:09:46.760Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T18:38:56.520Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T18:39:02.442Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:00:47.290Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:00:48.185Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:04:46.162Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:05:53 +0000] \"POST /dishes HTTP/1.1\" 201 181 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:05:53.525Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:09:59.481Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:10:08.795Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:10:13.097Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:10:17.075Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:10:30.228Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:10:34.416Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:10:50.602Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:10:55.289Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:10:57.299Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:11:02.865Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:11:13.853Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:11:18.824Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:13:03.824Z"}
+{"level":"error","message":"Error fetching dishes: snapshot.forEach is not a function","stack":"TypeError: snapshot.forEach is not a function\n    at C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\server.js:104:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","timestamp":"2024-10-22T19:13:16.999Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:13:17 +0000] \"GET /dishes/special HTTP/1.1\" 500 34 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:13:17.006Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:21:23.842Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:21:27.437Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:21:33.965Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:21:43.733Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:22:05.074Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:23:29.419Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:23:38.544Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:24:34.276Z"}
+{"level":"error","message":"Error fetching dishes: snapshot.forEach is not a function","stack":"TypeError: snapshot.forEach is not a function\n    at C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\server.js:104:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","timestamp":"2024-10-22T19:25:04.204Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:25:04 +0000] \"GET /dishes/special HTTP/1.1\" 500 34 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:25:04.209Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:25:38.992Z"}
+{"level":"error","message":"Error fetching dishes: snapshot.forEach is not a function","stack":"TypeError: snapshot.forEach is not a function\n    at C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\server.js:104:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","timestamp":"2024-10-22T19:25:41.398Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:25:41 +0000] \"GET /dishes/special HTTP/1.1\" 500 34 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:25:41.407Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:25:51.919Z"}
+{"level":"error","message":"Error fetching dishes: snapshot.forEach is not a function","stack":"TypeError: snapshot.forEach is not a function\n    at C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\server.js:104:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","timestamp":"2024-10-22T19:25:54.879Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:25:54 +0000] \"GET /dishes/special HTTP/1.1\" 500 34 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:25:54.885Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:26:01.404Z"}
+{"level":"error","message":"Error fetching dishes: snapshot.forEach is not a function","stack":"TypeError: snapshot.forEach is not a function\n    at C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\server.js:104:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","timestamp":"2024-10-22T19:26:09.097Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:26:09 +0000] \"GET /dishes/special HTTP/1.1\" 500 34 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:26:09.111Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:26:30.970Z"}
+{"level":"error","message":"Error fetching dishes: snapshot.forEach is not a function","stack":"TypeError: snapshot.forEach is not a function\n    at C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\server.js:104:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","timestamp":"2024-10-22T19:26:33.852Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:26:33 +0000] \"GET /dishes/special HTTP/1.1\" 500 34 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:26:33.858Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:30:05.121Z"}
+{"level":"error","message":"Error fetching dishes: snapshot.forEach is not a function","stack":"TypeError: snapshot.forEach is not a function\n    at C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\server.js:104:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","timestamp":"2024-10-22T19:30:08.325Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:30:08 +0000] \"GET /dishes/special HTTP/1.1\" 500 34 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:30:08.331Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:30:17.409Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:30:20.023Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:30:23.693Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:30:24.738Z"}
+{"level":"error","message":"Error fetching dishes: snapshot.forEach is not a function","stack":"TypeError: snapshot.forEach is not a function\n    at C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\server.js:104:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","timestamp":"2024-10-22T19:30:28.172Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:30:28 +0000] \"GET /dishes/special HTTP/1.1\" 500 34 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:30:28.177Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:31:24.210Z"}
+{"level":"error","message":"Error fetching dishes: snapshot.forEach is not a function","stack":"TypeError: snapshot.forEach is not a function\n    at C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\server.js:104:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","timestamp":"2024-10-22T19:31:28.395Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:31:28 +0000] \"GET /dishes/special HTTP/1.1\" 500 34 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:31:28.400Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:31:41.496Z"}
+{"level":"error","message":"Error fetching dishes: snapshot.forEach is not a function","stack":"TypeError: snapshot.forEach is not a function\n    at C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\server.js:104:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","timestamp":"2024-10-22T19:31:47.294Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:31:47 +0000] \"GET /dishes/special HTTP/1.1\" 500 34 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:31:47.299Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:31:56.293Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:31:57.419Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:32:04.541Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:32:05.720Z"}
+{"level":"error","message":"Error fetching dishes: snapshot.forEach is not a function","stack":"TypeError: snapshot.forEach is not a function\n    at C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\server.js:104:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","timestamp":"2024-10-22T19:32:09.267Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:32:09 +0000] \"GET /dishes/special HTTP/1.1\" 500 34 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:32:09.274Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:32:53.690Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:32:55 +0000] \"GET /dishes/special HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:32:55.865Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:33:24.669Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:33:25.930Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:33:28.693Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:33:30.171Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:33:32 +0000] \"GET /dishes/special HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:33:32.182Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:33:42.525Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:33:45.867Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:33:49 +0000] \"GET /dishes/special HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:33:49.329Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:34:00.837Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:34:12.305Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:34:19.587Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:34:21 +0000] \"GET /dishes/special HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:34:21.991Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:34:31.965Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:34:34.260Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:34:35.461Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:34:38.281Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:34:43.710Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:34:46 +0000] \"GET /dishes/special HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:34:46.838Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:34:58.820Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:35:00 +0000] \"GET /dishes/special HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:35:00.560Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:39:04 +0000] \"POST /dishes HTTP/1.1\" 201 180 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:39:04.629Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:39:39 +0000] \"GET /dishes/special HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:39:39.364Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:39:47.067Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:40:00.252Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:40:02 +0000] \"GET /dishes/special HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:40:02.095Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:40:08.644Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:40:24.503Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:40:27.689Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:40:33.982Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:40:37 +0000] \"GET /dishes/special HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:40:37.349Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:40:50.503Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:40:54 +0000] \"GET /dishes/special HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:40:54.354Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:41:09.594Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:41:34.328Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:41:36.556Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:41:39.752Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:41:44.316Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:42:51.577Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:42:59 +0000] \"GET /dishes/special HTTP/1.1\" 404 32 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:42:59.323Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:43:50.820Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:43:52 +0000] \"GET /dishes/special HTTP/1.1\" 404 32 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:43:52.887Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:46:28.216Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:47:01 +0000] \"POST /dishes HTTP/1.1\" 201 193 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:47:01.128Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:48:18 +0000] \"GET /dishes/special HTTP/1.1\" 404 32 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:48:18.910Z"}
+{"level":"error","message":"Error fetching dishes: snapshot.forEach is not a function","stack":"TypeError: snapshot.forEach is not a function\n    at C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\server.js:104:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","timestamp":"2024-10-22T19:48:47.488Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:48:47 +0000] \"GET /dishes/category/Indian HTTP/1.1\" 500 34 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:48:47.491Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:49:02.550Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:50:09.546Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:50:23.818Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:50:37 +0000] \"GET /categories HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:50:37.209Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:50:53.252Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:50:55 +0000] \"GET /categories HTTP/1.1\" 200 4 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:50:55.347Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:50:59.256Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:51:13.996Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:51:17 +0000] \"GET /categories HTTP/1.1\" 200 818 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:51:17.490Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:52:11 +0000] \"POST /dishes HTTP/1.1\" 201 180 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:52:11.723Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:52:29.816Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:52:40 +0000] \"GET /categories HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:52:40.672Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:53:36.097Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:53:47 +0000] \"POST /dishes HTTP/1.1\" 201 193 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:53:47.103Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:53:55 +0000] \"GET /dishes HTTP/1.1\" 404 145 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:53:55.410Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:54:12 +0000] \"GET /categories HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:54:12.495Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T19:54:32.186Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:56:32 +0000] \"POST /certificates HTTP/1.1\" 404 152 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:56:32.729Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:19:59:33 +0000] \"POST /dishes HTTP/1.1\" 201 180 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T19:59:33.179Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:00:24.143Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:00:31.568Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:00:48.618Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:00:50.033Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:00:53.131Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:00:54.348Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:01:19.197Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:01:20.611Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:01:32.019Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:01:43 +0000] \"GET /categories HTTP/1.1\" 200 - \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:01:43.911Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:01:55.867Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:01:56 +0000] \"GET /categories HTTP/1.1\" 200 - \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:01:56.951Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:02:03 +0000] \"GET /categories HTTP/1.1\" 200 - \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:02:03.231Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:02:07 +0000] \"GET /categories HTTP/1.1\" 200 - \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:02:07.964Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:02:27.497Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:02:28.613Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:02:33.824Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:02:37 +0000] \"GET /categories HTTP/1.1\" 200 - \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:02:37.704Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:02:53.169Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:03:13.293Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:03:24.755Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:03:29.413Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:03:32 +0000] \"GET /categories HTTP/1.1\" 200 457 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:03:32.550Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:04:00 +0000] \"POST /dishes HTTP/1.1\" 201 180 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:04:00.684Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:04:04 +0000] \"GET /categories HTTP/1.1\" 200 457 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:04:04.869Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:05:21.447Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:05:27.447Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:05:29.316Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:05:31.807Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:05:36.405Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:05:40.047Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:05:45 +0000] \"GET /categories HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:05:45.135Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:05:52.647Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:06:36.522Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:06:54.573Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:06:59.072Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:07:30.149Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:07:34.516Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:07:35.546Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:07:37.078Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:07:38.863Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:07:42.323Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:07:56.444Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:07:59.932Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:08:05.319Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:08:12.577Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:08:19.153Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:08:22.207Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:08:26.546Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:08:31.564Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:09:09.679Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:10:08.602Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:10:23 +0000] \"GET /categories HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:10:23.213Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:10:43.999Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:10:45 +0000] \"GET /categories HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:10:45.365Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:10:50 +0000] \"GET /categories HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:10:50.748Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:11:00.848Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:11:01 +0000] \"GET /categories HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:11:01.492Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:12:43.114Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:12:47 +0000] \"GET /categories HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:12:47.530Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:13:07.183Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:13:09.661Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:13:12 +0000] \"GET /categories HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:13:12.932Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:13:18.570Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:13:20 +0000] \"GET /categories HTTP/1.1\" 500 38 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:13:20.298Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:13:32 +0000] \"GET /categories HTTP/1.1\" 500 38 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:13:32.541Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:13:54.772Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:13:56 +0000] \"GET /categories HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:13:56.564Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:15:58.066Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:16:00 +0000] \"GET /categories HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:16:00.965Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:17:54.489Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:18:07.797Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:18:09.859Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:18:12.415Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:18:14.649Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:18:16.119Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:18:19.273Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:18:33.976Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:18:34.871Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:18:36.681Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:18:50.562Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:18:56.943Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:19:03.753Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:19:08.101Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:19:12.888Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:19:14.718Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:19:21.724Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:19:24.118Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:19:25.584Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:19:35 +0000] \"GET /categories HTTP/1.1\" 200 457 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:19:35.649Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:19:50.341Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:20:07.702Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:20:10.384Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:20:15.937Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:20:17.712Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:20:28.719Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:20:30.928Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:20:33.325Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:22:47.458Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:22:50 +0000] \"GET /categories HTTP/1.1\" 200 2 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:22:50.380Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:23:24.224Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:23:25.713Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:23:31 +0000] \"GET /categories HTTP/1.1\" 200 457 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:23:31.493Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:25:43.409Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:25:50.306Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:25:54.522Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:25:57.795Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:25:59 +0000] \"GET /categories HTTP/1.1\" 200 7 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:25:59.120Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:28:11 +0000] \"GET /categories HTTP/1.1\" 200 7 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:28:11.137Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:31:40.546Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:31:46 +0000] \"POST /dishes HTTP/1.1\" 201 180 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:31:46.301Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:32:40 +0000] \"GET /dishes/special HTTP/1.1\" 200 502 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:32:40.382Z"}
+{"level":"error","message":"Error fetching dishes: snapshot.forEach is not a function","stack":"TypeError: snapshot.forEach is not a function\n    at C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\server.js:137:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","timestamp":"2024-10-22T20:32:56.527Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:32:56 +0000] \"GET /dishes/category/Indian HTTP/1.1\" 500 34 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:32:56.533Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:33:35.422Z"}
+{"level":"error","message":"Error fetching dishes: snapshot.forEach is not a function","stack":"TypeError: snapshot.forEach is not a function\n    at C:\\Users\\tj_20\\Desktop\\biryani darbaar-test-deployment\\server\\server.js:137:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","timestamp":"2024-10-22T20:33:36.318Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:33:36 +0000] \"GET /dishes/category/Indian HTTP/1.1\" 500 34 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:33:36.327Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:33:43.036Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:33:45.960Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:35:26.928Z"}
+{"level":"info","message":"::1 - - [22/Oct/2024:20:35:30 +0000] \"GET /dishes/category/Indian HTTP/1.1\" 200 1358 \"-\" \"PostmanRuntime/7.42.0\"","timestamp":"2024-10-22T20:35:30.970Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:35:46.672Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:35:56.583Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:36:03.849Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:37:29.335Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:37:37.529Z"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2024-10-22T20:39:12.063Z"}
