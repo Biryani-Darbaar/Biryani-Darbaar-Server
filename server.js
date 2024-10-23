@@ -127,6 +127,22 @@ app.get("/dishes/category/:category", async (req, res) => {
   }
 });
 
+app.get("/categories", async (req, res) => {
+  try {
+    const categoriesSnapshot = await db.collection("category").get();
+    const categories = [];
+
+    categoriesSnapshot.forEach((doc) => {
+      categories.push(doc.data().name);
+    });
+
+    res.json(categories);
+  } catch (error) {
+    logger.error("Error fetching categories:", error);
+    res.status(500).json({ error: "Failed to fetch categories" });
+  }
+});
+
 app.get("/dishes/special", async (req, res) => {
   try {
     const categoriesSnapshot = await db.collection("category").get();

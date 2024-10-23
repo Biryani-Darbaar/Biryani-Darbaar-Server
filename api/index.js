@@ -261,7 +261,21 @@ app.delete("/dishes/:category/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete dish" });
   }
 });
+app.get("/categories", async (req, res) => {
+  try {
+    const categoriesSnapshot = await db.collection("category").get();
+    const categories = [];
 
+    categoriesSnapshot.forEach((doc) => {
+      categories.push(doc.data().name);
+    });
+
+    res.json(categories);
+  } catch (error) {
+    logger.error("Error fetching categories:", error);
+    res.status(500).json({ error: "Failed to fetch categories" });
+  }
+});
 // Route to handle order submissions
 app.post("/orders", async (req, res) => {
   const orderData = req.body; // Order data sent from the frontend
