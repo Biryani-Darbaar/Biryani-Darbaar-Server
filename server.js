@@ -462,6 +462,8 @@ app.post("/login", async (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
+  console.log("Mundaa lanja mundaaaaaaaaaaaa");
+  
   req.session.destroy((err) => {
     if (err) {
       return res.status(500).send(err);
@@ -568,7 +570,83 @@ app.delete("/img", async (req, res) => {
   }
 });
 
+// Route to add an item to the cart
+app.post("/cart", async (req, res) => {
+  const userId = storage.getItem("userId");
+  const cartItem = req.body;
 
+  try {
+    const cartRef = db.collection("users").doc(userId).collection("cart").doc();
+    await cartRef.set(cartItem);
+
+    res.status(201).json({
+      message: "Item added to cart successfully",
+      cartItemId: cartRef.id,
+    });
+  } catch (error) {
+    logger.error("Error adding item to cart:", error);
+    res.status(500).json({ error: "Failed to add item to cart" });
+  }
+});
+// Sample body for adding an item to the cart
+// {
+//   "dishId": "exampleDishId",
+//   "name": "Chicken Biryani",
+//   "quantity": 2,
+//   "price": 12.99,
+//   "imageUrl": "https://example.com/image.jpg"
+// }
+// Route to get all items in the cart
+app.get("/cart", async (req, res) => {
+  const userId = storage.getItem("userId");
+
+  try {
+    const cartSnapshot = await db.collection("users").doc(userId).collection("cart").get();
+    const cartItems = [];
+
+    cartSnapshot.forEach((doc) => {
+      cartItems.push({ cartItemId: doc.id, ...doc.data() });
+    });
+
+    res.json(cartItems);
+  } catch (error) {
+    logger.error("Error fetching cart items:", error);
+    res.status(500).json({ error: "Failed to fetch cart items" });
+  }
+});
+
+// Route to update an item in the cart
+app.put("/cart/:id", async (req, res) => {
+  const userId = storage.getItem("userId");
+  const cartItemId = req.params.id;
+  const updatedCartItem = req.body;
+
+  try {
+    const cartRef = db.collection("users").doc(userId).collection("cart").doc(cartItemId);
+    await cartRef.update(updatedCartItem);
+
+    res.status(200).json({ message: "Cart item updated successfully" });
+  } catch (error) {
+    logger.error("Error updating cart item:", error);
+    res.status(500).json({ error: "Failed to update cart item" });
+  }
+});
+
+// Route to delete an item from the cart
+app.delete("/cart/:id", async (req, res) => {
+  const userId = storage.getItem("userId");
+  const cartItemId = req.params.id;
+
+  try {
+    const cartRef = db.collection("users").doc(userId).collection("cart").doc(cartItemId);
+    await cartRef.delete();
+
+    res.status(200).json({ message: "Cart item deleted successfully" });
+  } catch (error) {
+    logger.error("Error deleting cart item:", error);
+    res.status(500).json({ error: "Failed to delete cart item" });
+  }
+});
 const port = 3000;
 app.listen(port, () => {
   logger.info(`Server is running on port ${port}`);

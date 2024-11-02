@@ -1,5 +1,5 @@
 const morgan = require("morgan");
-const logger = require("../logger"); // Import the logger
+const logger = require("./logger"); // Import the logger
 const express = require("express");
 const admin = require("firebase-admin");
 const multer = require("multer");
@@ -12,7 +12,7 @@ const bodyParser = require("body-parser");
 require("firebase/auth");
 
 // Initialize Firebase Admin SDK
-const serviceAccount = require("../serviceAccountKey.json"); // Path to your Firebase service account key
+const serviceAccount = require("./serviceAccountKey.json"); // Path to your Firebase service account key
 // const {
 //   log,
 // } = require("@angular-devkit/build-angular/src/builders/ssr-dev-server");
@@ -47,6 +47,7 @@ const upload = multer({
   storage: multer.memoryStorage(), // Store the file in memory temporarily
 });
 
+// Route to upload images and store metadata in Firestore
 app.post("/dishes", upload.single("image"), async (req, res) => {
   const dishData = JSON.parse(req.body.dishData); // Parse the JSON data sent by the client
   const file = req.file; // The uploaded image
@@ -123,6 +124,22 @@ app.get("/dishes/category/:category", async (req, res) => {
   } catch (error) {
     logger.error("Error fetching dishes:", error);
     res.status(500).json({ error: "Failed to fetch dishes" });
+  }
+});
+
+app.get("/categories", async (req, res) => {
+  try {
+    const categoriesSnapshot = await db.collection("category").get();
+    const categories = [];
+
+    categoriesSnapshot.forEach((doc) => {
+      categories.push(doc.data().name);
+    });
+
+    res.json(categories);
+  } catch (error) {
+    logger.error("Error fetching categories:", error);
+    res.status(500).json({ error: "Failed to fetch categories" });
   }
 });
 
@@ -261,21 +278,7 @@ app.delete("/dishes/:category/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete dish" });
   }
 });
-app.get("/categories", async (req, res) => {
-  try {
-    const categoriesSnapshot = await db.collection("category").get();
-    const categories = [];
 
-    categoriesSnapshot.forEach((doc) => {
-      categories.push(doc.data().name);
-    });
-
-    res.json(categories);
-  } catch (error) {
-    logger.error("Error fetching categories:", error);
-    res.status(500).json({ error: "Failed to fetch categories" });
-  }
-});
 // Route to handle order submissions
 app.post("/orders", async (req, res) => {
   const orderData = req.body; // Order data sent from the frontend
@@ -459,6 +462,8 @@ app.post("/login", async (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
+  console.log("Mundaa lanja mundaaaaaaaaaaaa");
+  
   req.session.destroy((err) => {
     if (err) {
       return res.status(500).send(err);
@@ -565,6 +570,83 @@ app.delete("/img", async (req, res) => {
   }
 });
 
+// Route to add an item to the cart
+app.post("/cart", async (req, res) => {
+  const userId = storage.getItem("userId");
+  const cartItem = req.body;
+
+  try {
+    const cartRef = db.collection("users").doc(userId).collection("cart").doc();
+    await cartRef.set(cartItem);
+
+    res.status(201).json({
+      message: "Item added to cart successfully",
+      cartItemId: cartRef.id,
+    });
+  } catch (error) {
+    logger.error("Error adding item to cart:", error);
+    res.status(500).json({ error: "Failed to add item to cart" });
+  }
+});
+// Sample body for adding an item to the cart
+// {
+//   "dishId": "exampleDishId",
+//   "name": "Chicken Biryani",
+//   "quantity": 2,
+//   "price": 12.99,
+//   "imageUrl": "https://example.com/image.jpg"
+// }
+// Route to get all items in the cart
+app.get("/cart", async (req, res) => {
+  const userId = storage.getItem("userId");
+
+  try {
+    const cartSnapshot = await db.collection("users").doc(userId).collection("cart").get();
+    const cartItems = [];
+
+    cartSnapshot.forEach((doc) => {
+      cartItems.push({ cartItemId: doc.id, ...doc.data() });
+    });
+
+    res.json(cartItems);
+  } catch (error) {
+    logger.error("Error fetching cart items:", error);
+    res.status(500).json({ error: "Failed to fetch cart items" });
+  }
+});
+
+// Route to update an item in the cart
+app.put("/cart/:id", async (req, res) => {
+  const userId = storage.getItem("userId");
+  const cartItemId = req.params.id;
+  const updatedCartItem = req.body;
+
+  try {
+    const cartRef = db.collection("users").doc(userId).collection("cart").doc(cartItemId);
+    await cartRef.update(updatedCartItem);
+
+    res.status(200).json({ message: "Cart item updated successfully" });
+  } catch (error) {
+    logger.error("Error updating cart item:", error);
+    res.status(500).json({ error: "Failed to update cart item" });
+  }
+});
+
+// Route to delete an item from the cart
+app.delete("/cart/:id", async (req, res) => {
+  const userId = storage.getItem("userId");
+  const cartItemId = req.params.id;
+
+  try {
+    const cartRef = db.collection("users").doc(userId).collection("cart").doc(cartItemId);
+    await cartRef.delete();
+
+    res.status(200).json({ message: "Cart item deleted successfully" });
+  } catch (error) {
+    logger.error("Error deleting cart item:", error);
+    res.status(500).json({ error: "Failed to delete cart item" });
+  }
+});
 
 
 module.exports = app;
