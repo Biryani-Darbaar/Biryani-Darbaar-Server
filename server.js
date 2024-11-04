@@ -59,7 +59,7 @@ app.post("/dishes", upload.single("image"), async (req, res) => {
     // Check if the category document exists, and if not, create it with a 'name' field
     const categoryDocRef = db.collection("category").doc(category);
     const categoryDoc = await categoryDocRef.get();
-    
+
     if (!categoryDoc.exists) {
       // If the category doesn't exist, add a 'name' field to it
       await categoryDocRef.set({ name: category });
@@ -87,7 +87,11 @@ app.post("/dishes", upload.single("image"), async (req, res) => {
 
     // Store dish data and image URL in Firestore under the category's 'dishes' sub-collection
     const timestamp = Date.now().toString();
-    const newDishRef = db.collection("category").doc(category).collection("dishes").doc(timestamp); // Generate a new document reference
+    const newDishRef = db
+      .collection("category")
+      .doc(category)
+      .collection("dishes")
+      .doc(timestamp); // Generate a new document reference
     const newDishData = {
       ...dishDataWithoutCategory,
       image: imageUrl,
@@ -113,7 +117,11 @@ app.get("/dishes/category/:category", async (req, res) => {
   const category = req.params.category;
   try {
     // Reference the 'dishes' sub-collection within the category document
-    const dishesSnapshot = await db.collection("category").doc(category).collection("dishes").get();
+    const dishesSnapshot = await db
+      .collection("category")
+      .doc(category)
+      .collection("dishes")
+      .get();
 
     const dishes = [];
     dishesSnapshot.forEach((doc) => {
@@ -143,50 +151,65 @@ app.get("/categories", async (req, res) => {
   }
 });
 
-app.get("/dishes/special", async (req, res) => {
+// app.get("/dishes/all", async (req, res) => {
+//   try {
+//     const getAllDishesSnapshot = await db.collection("category").get();
+//     if (getAllDishesSnapshot.empty) {
+//       console.log(getAllDishesSnapshot)
+//     }
+// res.status(200).json({hello:getAllDishesSnapshot})
+//   }
+//   catch (error) {
+    
+//   }
+// })
+app.get("/dishes/:cat", async (req, res) => {
   try {
     const categoriesSnapshot = await db.collection("category").get();
-    const specialDishes = [];
+    const allDishes = [];
 
     if (categoriesSnapshot.empty) {
       console.log("No categories found in Firestore.");
       return res.status(404).json({ error: "No categories found." });
     }
 
+    // Loop through each category to fetch dishes
     for (const categoryDoc of categoriesSnapshot.docs) {
-      const category = categoryDoc.id; // Get the category ID
-      console.log(`Fetching dishes for category: ${category}`);
+      const categoryId = categoryDoc.id; // Get the category ID
+      const categoryName = categoryDoc.data().categoryName; // Get the category name
+      console.log(`Fetching dishes for category: ${categoryName}`);
 
-      // Fetch dishes from the current category where subCategory is "Special Offers"
-      const dishesSnapshot = await db.collection("category")
-        .doc(category)
+      // Fetch all dishes from the current category's subcollection
+      const dishesSnapshot = await db
+        .collection("category")
+        .doc(categoryId)
         .collection("dishes")
-        .where("subCategory", "==", "Special Offers")
         .get();
 
       if (dishesSnapshot.empty) {
-        console.log(`No special offer dishes found in category: ${category}`);
-      }
-
-      dishesSnapshot.forEach((dishDoc) => {
-        specialDishes.push({
-          dishId: dishDoc.id,
-          category,
-          ...dishDoc.data()
+        console.log(`No dishes found in category: ${categoryName}`);
+      } else {
+        dishesSnapshot.forEach((dishDoc) => {
+          allDishes.push({
+            dishId: dishDoc.id,
+            category: categoryName,
+            ...dishDoc.data(),
+          });
+          console.log(`Found dish: ${dishDoc.id} in category: ${categoryName}`);
         });
-        console.log(`Found special offer dish: ${dishDoc.id} in category: ${category}`);
-      });
+      }
     }
 
-    if (specialDishes.length === 0) {
-      console.log("No special offer dishes found.");
-      return res.status(404).json({ error: "No special offer dishes found." });
+    // Check if we found any dishes
+    if (allDishes.length === 0) {
+      console.log("No dishes found.");
+      return res.status(404).json({ error: "No dishes found." });
     }
 
-    res.json(specialDishes); // Return the list of special offer dishes
+    res.json(allDishes); // Return the list of all dishes
   } catch (error) {
-    console.error("Error fetching special dishes:", error);
-    res.status(500).json({ error: "Failed to fetch special offer dishes" });
+    console.error("Error fetching all dishes:", error);
+    res.status(500).json({ error: "Failed to fetch dishes" });
   }
 });
 
@@ -197,7 +220,11 @@ app.put("/dishes/:category/:id", upload.single("image"), async (req, res) => {
   const file = req.file;
 
   try {
-    const dishRef = db.collection("category").doc(category).collection("dishes").doc(dishId);
+    const dishRef = db
+      .collection("category")
+      .doc(category)
+      .collection("dishes")
+      .doc(dishId);
     const dishDoc = await dishRef.get();
 
     if (!dishDoc.exists) {
@@ -252,7 +279,11 @@ app.delete("/dishes/:category/:id", async (req, res) => {
   const { category, id: dishId } = req.params;
 
   try {
-    const dishRef = db.collection("category").doc(category).collection("dishes").doc(dishId);
+    const dishRef = db
+      .collection("category")
+      .doc(category)
+      .collection("dishes")
+      .doc(dishId);
     const dishDoc = await dishRef.get();
 
     if (!dishDoc.exists) {
@@ -276,6 +307,49 @@ app.delete("/dishes/:category/:id", async (req, res) => {
   } catch (error) {
     logger.error("Error deleting dish:", error);
     res.status(500).json({ error: "Failed to delete dish" });
+  }
+});
+//to delete category
+
+app.delete("/categories/:category", async (req, res) => {
+  const { category } = req.params;
+
+  try {
+    // Reference to the category document
+    const categoryRef = db.collection("category").doc(category);
+
+    // Get all dishes associated with the category
+    const dishesSnapshot = await categoryRef.collection("dishes").get();
+
+    // Loop through the dishes and delete them
+    const deletePromises = [];
+    dishesSnapshot.forEach((dishDoc) => {
+      const dishData = dishDoc.data();
+      const imageUrl = dishData.image;
+
+      // Delete the dish document
+      deletePromises.push(dishDoc.ref.delete());
+
+      // If an image URL exists, delete the image from Firebase Storage
+      if (imageUrl) {
+        const fileName = imageUrl.split("/").pop();
+        const file = bucket.file(fileName);
+        deletePromises.push(file.delete());
+      }
+    });
+
+    // Wait for all deletes to complete
+    await Promise.all(deletePromises);
+
+    // Finally, delete the category document itself
+    await categoryRef.delete();
+
+    res
+      .status(200)
+      .json({ message: "Category and associated dishes deleted successfully" });
+  } catch (error) {
+    logger.error("Error deleting category:", error);
+    res.status(500).json({ error: "Failed to delete category" });
   }
 });
 
@@ -463,7 +537,7 @@ app.post("/login", async (req, res) => {
 
 app.post("/logout", (req, res) => {
   console.log("Mundaa lanja mundaaaaaaaaaaaa");
-  
+
   req.session.destroy((err) => {
     if (err) {
       return res.status(500).send(err);
@@ -537,12 +611,12 @@ app.post("/img", upload.array("images", 50), async (req, res) => {
   }
 });
 
-app.get("/img", async(req, res) => {
+app.get("/img", async (req, res) => {
   try {
     const [files] = await bucket.getFiles({ prefix: "images/" });
-    const images = files.map(file => ({
+    const images = files.map((file) => ({
       name: file.name,
-      url: `https://storage.googleapis.com/${bucket.name}/${file.name}`
+      url: `https://storage.googleapis.com/${bucket.name}/${file.name}`,
     }));
     res.json(images);
   } catch (error) {
@@ -601,7 +675,11 @@ app.get("/cart", async (req, res) => {
   const userId = storage.getItem("userId");
 
   try {
-    const cartSnapshot = await db.collection("users").doc(userId).collection("cart").get();
+    const cartSnapshot = await db
+      .collection("users")
+      .doc(userId)
+      .collection("cart")
+      .get();
     const cartItems = [];
 
     cartSnapshot.forEach((doc) => {
@@ -622,7 +700,11 @@ app.put("/cart/:id", async (req, res) => {
   const updatedCartItem = req.body;
 
   try {
-    const cartRef = db.collection("users").doc(userId).collection("cart").doc(cartItemId);
+    const cartRef = db
+      .collection("users")
+      .doc(userId)
+      .collection("cart")
+      .doc(cartItemId);
     await cartRef.update(updatedCartItem);
 
     res.status(200).json({ message: "Cart item updated successfully" });
@@ -638,7 +720,11 @@ app.delete("/cart/:id", async (req, res) => {
   const cartItemId = req.params.id;
 
   try {
-    const cartRef = db.collection("users").doc(userId).collection("cart").doc(cartItemId);
+    const cartRef = db
+      .collection("users")
+      .doc(userId)
+      .collection("cart")
+      .doc(cartItemId);
     await cartRef.delete();
 
     res.status(200).json({ message: "Cart item deleted successfully" });
@@ -663,11 +749,66 @@ app.patch("/ordersAdmin/:id", async (req, res) => {
     await orderRef.update({ orderStatus });
     res.status(200).send("Order status updated");
   } catch (error) {
+    console.log("Modda Gudu");
     logger.error("Error updating order status:", error);
     res.status(500).send("Error updating order status");
   }
 });
-const port = 3000;
+app.get("/categories", async (req, res) => {
+  try {
+    const categoriesRef = db.collection("category");
+    const querySnapshot = await categoriesRef.get();
+
+    if (querySnapshot.empty) {
+      return res.status(404).json({ message: "No categories found" });
+    }
+
+    const categories = [];
+    querySnapshot.forEach((doc) => {
+      categories.push({ id: doc.id, ...doc.data() });
+    });
+
+    return res.status(200).json(categories);
+  } catch (error) {
+    console.error("Error retrieving categories:", error);
+    return res
+      .status(500)
+      .json({ message: "Error retrieving categories", error: error.message });
+  }
+});
+//to create new category
+
+app.post("/categories", async (req, res) => {
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ error: "Category name is required" });
+  }
+
+  try {
+    // Check if the category already exists
+    const categoryRef = db.collection("category").doc(name);
+    const doc = await categoryRef.get();
+
+    if (doc.exists) {
+      return res.status(409).json({ error: "Category already exists" });
+    }
+
+    // Add new category to Firestore using the category name as the document ID
+    await categoryRef.set({ name });
+
+    res.status(201).json({
+      message: "Category created successfully",
+      categoryId: name, // Use the category name as the ID
+      categoryName: name,
+    });
+  } catch (error) {
+    console.error("Error creating category:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+const port = 4200;
 app.listen(port, () => {
   logger.info(`Server is running on port ${port}`);
 });
