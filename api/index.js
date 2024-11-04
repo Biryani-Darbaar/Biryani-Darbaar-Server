@@ -648,5 +648,25 @@ app.delete("/cart/:id", async (req, res) => {
   }
 });
 
+app.patch("/ordersAdmin/:id", async (req, res) => {
+  const { id } = req.params;
+  const { orderStatus, userId } = req.body;
+  try {
+    const userOrderRef = db
+      .collection("users")
+      .doc(userId)
+      .collection("orders")
+      .doc(id);
+    await userOrderRef.update({ orderStatus });
+    console.log("Pani cheyyavee");
+    const orderRef = db.collection("order").doc(id);
+    await orderRef.update({ orderStatus });
+    res.status(200).send("Order status updated");
+  } catch (error) {
+    logger.error("Error updating order status:", error);
+    res.status(500).send("Error updating order status");
+  }
+});
+
 
 module.exports = app;
