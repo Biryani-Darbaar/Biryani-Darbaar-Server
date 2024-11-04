@@ -1,2 +1,4 @@
 .vercel
 node_modules
+combined.loog
+error.log
