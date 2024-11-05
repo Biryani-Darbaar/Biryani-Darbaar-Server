@@ -668,7 +668,7 @@ app.post("/cart", async (req, res) => {
 });
 
 // Route to get all items in the cart
-app.get("/cart", async (req, res) => {
+app.post("/getCart", async (req, res) => {
   let userId = storage.getItem("userId");
   if (!userId) {
     userId = req.body.userId;
