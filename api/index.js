@@ -646,10 +646,14 @@ app.delete("/img", async (req, res) => {
 
 // Route to add an item to the cart
 app.post("/cart", async (req, res) => {
-  const userId = storage.getItem("userId");
+  let userId = storage.getItem("userId");
+  if (!userId) {
+    userId = req.body.userId;
+  }
   const cartItem = req.body;
 
   try {
+    console.log(userId);
     const cartRef = db.collection("users").doc(userId).collection("cart").doc();
     await cartRef.set(cartItem);
 
@@ -662,17 +666,13 @@ app.post("/cart", async (req, res) => {
     res.status(500).json({ error: "Failed to add item to cart" });
   }
 });
-// Sample body for adding an item to the cart
-// {
-//   "dishId": "exampleDishId",
-//   "name": "Chicken Biryani",
-//   "quantity": 2,
-//   "price": 12.99,
-//   "imageUrl": "https://example.com/image.jpg"
-// }
+
 // Route to get all items in the cart
 app.get("/cart", async (req, res) => {
-  const userId = storage.getItem("userId");
+  let userId = storage.getItem("userId");
+  if (!userId) {
+    userId = req.body.userId;
+  }
 
   try {
     const cartSnapshot = await db
@@ -695,7 +695,10 @@ app.get("/cart", async (req, res) => {
 
 // Route to update an item in the cart
 app.put("/cart/:id", async (req, res) => {
-  const userId = storage.getItem("userId");
+  let userId = storage.getItem("userId");
+  if (!userId) {
+    userId = req.body.userId;
+  }
   const cartItemId = req.params.id;
   const updatedCartItem = req.body;
 
@@ -716,7 +719,10 @@ app.put("/cart/:id", async (req, res) => {
 
 // Route to delete an item from the cart
 app.delete("/cart/:id", async (req, res) => {
-  const userId = storage.getItem("userId");
+  let userId = storage.getItem("userId");
+  if (!userId) {
+    userId = req.body.userId;
+  }
   const cartItemId = req.params.id;
 
   try {
