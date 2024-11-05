@@ -1,3 +1,3 @@
 git add .
-git commit -m "Completed the merge between the new changes" 
+git commit -m "Prod push for usage of new services" 
 git push 
