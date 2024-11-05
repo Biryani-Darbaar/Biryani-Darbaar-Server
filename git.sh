@@ -1,3 +1,3 @@
 git add .
-git commit -m "FIX:Patch endpoint issue resolved created new endpoint for the admin dashboard" 
+git commit -m "Completed the merge between the new changes" 
 git push 
