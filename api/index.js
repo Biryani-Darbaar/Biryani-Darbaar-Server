@@ -808,4 +808,61 @@ app.post("/categories", async (req, res) => {
   }
 });
 
+  
+app.post("/locations", upload.single("image"), async (req, res) => {
+  const { name, address } = req.body;
+  const file = req.file;
+
+  if (!name || !address) {
+    return res.status(400).json({ error: "Location name and address are required" });
+  }
+
+  try {
+    let imageUrl = "";
+
+    if (file) {
+      const fileName = `locations/${Date.now()}-${file.originalname}`;
+      const fileUpload = bucket.file(fileName);
+
+      await fileUpload.save(file.buffer, {
+        contentType: file.mimetype,
+      });
+
+      await fileUpload.makePublic();
+      imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+    }
+
+    const locationRef = db.collection("location").doc();
+    await locationRef.set({ name, address, image: imageUrl });
+
+    res.status(201).json({
+      message: "Location created successfully",
+      locationId: locationRef.id,
+      name,
+      address,
+      imageUrl,
+    });
+  } catch (error) {
+    logger.error("Error creating location:", error);
+    res.status(500).json({ error: "Failed to create location" });
+  }
+});
+
+// Route to get all locations
+app.get("/locations", async (req, res) => {
+  try {
+    const locationsSnapshot = await db.collection("location").get();
+    const locations = [];
+
+    locationsSnapshot.forEach((doc) => {
+      locations.push({ locationId: doc.id, ...doc.data() });
+    });
+
+    res.json(locations);
+  } catch (error) {
+    logger.error("Error fetching locations:", error);
+    res.status(500).json({ error: "Failed to fetch locations" });
+  }
+});
+
 module.exports = app;
