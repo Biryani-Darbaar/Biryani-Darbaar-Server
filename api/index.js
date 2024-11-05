@@ -1,5 +1,5 @@
 const morgan = require("morgan");
-const logger = require("./logger"); // Import the logger
+const logger = require("../logger"); // Import the logger
 const express = require("express");
 const admin = require("firebase-admin");
 const multer = require("multer");
@@ -12,7 +12,7 @@ const bodyParser = require("body-parser");
 require("firebase/auth");
 
 // Initialize Firebase Admin SDK
-const serviceAccount = require("./serviceAccountKey.json"); // Path to your Firebase service account key
+const serviceAccount = require("../serviceAccountKey.json"); // Path to your Firebase service account key
 // const {
 //   log,
 // } = require("@angular-devkit/build-angular/src/builders/ssr-dev-server");
