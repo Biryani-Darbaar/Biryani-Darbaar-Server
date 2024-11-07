@@ -1,3 +1,3 @@
 git add .
-git commit -m "Cart services modified to work independent of session storage" 
+git commit -m "Promo code services and stripe payment integration" 
 git push 
