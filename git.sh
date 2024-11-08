@@ -1,3 +1,3 @@
 git add .
-git commit -m "Promo code services and stripe payment integration" 
+git commit -m "Updated the signup route to work with the new user model" 
 git push 
