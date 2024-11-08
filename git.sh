@@ -1,3 +1,3 @@
 git add .
-git commit -m "Updated the signup route to work with the new user model" 
+git commit -m "Payment gatewaya nd promo code endpoints to prod" 
 git push 

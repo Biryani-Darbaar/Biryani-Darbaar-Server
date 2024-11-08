@@ -814,6 +814,7 @@ app.post("/categories", async (req, res) => {
   }
 });
 
+// Route to create a new location
   
 app.post("/locations", upload.single("image"), async (req, res) => {
   const { name, address } = req.body;
@@ -870,5 +871,114 @@ app.get("/locations", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch locations" });
   }
 });
+
+app.post("/create-payment-intent", async (req, res) => {
+  try {
+    const { amount, currency } = req.body;
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount, // Amount in cents (for $10, use 1000)
+      currency: currency, // e.g., 'usd'
+    });
+    res.status(200).json({
+      clientSecret: paymentIntent.client_secret,
+    });
+  } catch (error) {
+    console.error("error creating payment intent", error);
+    res.status(500).json({ error: error });
+  }
+  // Simulated in-memory storage for promo codes
+  // Endpoint to create a new promo code
+});
+// Sample input to test the create-promo endpoint
+// Use a tool like Postman or curl to send a POST request to http://localhost:4200/create-promo
+
+/*
+POST /create-promo HTTP/1.1
+Host: localhost:4200
+Content-Type: application/json
+
+{
+  "code": "SUMMER21",
+  "discount": 20, // Discount percentage
+  "expirationDate": "2023-12-31T23:59:59Z" // ISO 8601 format
+}
+*/
+app.post("/create-promo", async (req, res) => {
+  const { code, discount, expirationDate } = req.body;
+  console.log(req.body);
+  var str = req.body;
+  if (!code || !discount || !expirationDate) {
+    return res.status(400).json({ message: str });
+  }
+
+  try {
+    // Check if promo code already exists in Firestore
+    const promoRef = db.collection("promoCodes").doc(code);
+    const doc = await promoRef.get();
+
+    if (doc.exists) {
+      return res.status(409).json({ message: "Promo code already exists" });
+    }
+
+    // Store promo code in Firestore
+    await promoRef.set({
+      discount: discount / 100, // Convert percentage to decimal
+      expirationDate: new Date(expirationDate),
+    });
+    res.status(201).json({ message: "Promo code created successfully" });
+  } catch (error) {
+    console.error("Error creating promo code:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// Endpoint to validate promo code
+app.post("/validate-promo", async (req, res) => {
+  const { promoCode } = req.body;
+  try {
+    // Get promo code from Firestore
+    const promoRef = db.collection("promoCodes").doc(promoCode);
+    const doc = await promoRef.get();
+    if (!doc.exists) {
+      return res.json({ success: false, message: "Invalid promo code" });
+    }
+    const promo = doc.data();
+    const currentDate = new Date();
+    const currentDateUnix = Math.floor(currentDate.getTime() / 1000);
+    // Check if the promo code is expired
+    console.log(currentDateUnix, promo.expirationDate);
+    if (currentDateUnix > promo.expirationDate._seconds) {
+      return res.json({ success: false, message: "Promo code expired" });
+    }
+    // Calculate the final amount after applying the discount
+    const finalDiscount = promo.discount;
+    res.json({ success: true, finalDiscount });
+  } catch (error) {
+    console.error("Error validating promo code:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+app.get("/get-all-promos", async (req, res) => {
+  try {
+    // Get all promo codes from Firestore
+    const promoSnapshot = await db.collection("promoCodes").get();
+    if (promoSnapshot.empty) {
+      return res.status(404).json({ message: "No promo codes found" });
+    }
+    const promoCodes = [];
+    promoSnapshot.forEach((doc) => {
+      const promoData = doc.data();
+      promoCodes.push({
+        code: doc.id,
+        // Convert decimal back to percentage
+        expirationDate: new Date(promoData.expirationDate._seconds * 1000).toISOString(), // Format date and time as ISO string
+      });
+    });
+    res.json(promoCodes);
+  } catch (error) {
+    console.error("Error fetching promo codes:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}); 
 
 module.exports = app;
