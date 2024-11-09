@@ -9,8 +9,10 @@ const session = require("express-session");
 const storage = require("node-sessionstorage");
 const firebase = require("firebase/app");
 const bodyParser = require("body-parser");
-const Stripe = require('stripe');
-const stripe = Stripe("sk_test_51QI9zGP1mrjxuTnQTDIs3bGL2uG5IBEQ2OzCdNRz0jmjTEM2sCKgoI1ZUwKNLkWP08Y6YtJMBd7CoQ8tEGgFHUGL00gBw5aDE2");
+const Stripe = require("stripe");
+const stripe = Stripe(
+  "sk_test_51QI9zGP1mrjxuTnQTDIs3bGL2uG5IBEQ2OzCdNRz0jmjTEM2sCKgoI1ZUwKNLkWP08Y6YtJMBd7CoQ8tEGgFHUGL00gBw5aDE2"
+);
 require("firebase/auth");
 
 // Initialize Firebase Admin SDK
@@ -162,7 +164,7 @@ app.get("/categories", async (req, res) => {
 // res.status(200).json({hello:getAllDishesSnapshot})
 //   }
 //   catch (error) {
-    
+
 //   }
 // })
 app.get("/dishes/:cat", async (req, res) => {
@@ -358,7 +360,10 @@ app.delete("/categories/:category", async (req, res) => {
 // Route to handle order submissions
 app.post("/orders", async (req, res) => {
   const orderData = req.body; // Order data sent from the frontend
-  const userId = storage.getItem("userId");
+  let userId = storage.getItem("userId");
+  if (!userId) {
+    userId = req.body.userId;
+  }
   const orderStoreData = {
     ...orderData,
     userId: userId,
@@ -407,7 +412,10 @@ app.get("/orders", async (req, res) => {
 });
 // Route to fetch all orders
 app.get("/ordersByUser", async (req, res) => {
-  const userId = storage.getItem("userId");
+  let userId = storage.getItem("userId");
+  if (!userId) {
+    userId = req.body.userId;
+  }
   try {
     const snapshot = await db
       .collection("users")
@@ -428,7 +436,10 @@ app.get("/ordersByUser", async (req, res) => {
 // Route to fetch a specific order by ID
 app.get("/orders/:id", async (req, res) => {
   const orderId = req.params.id;
-  const userId = storage.getItem("userId");
+  let userId = storage.getItem("userId");
+  if(!userId){
+    userId = req.body.userId;
+  }
   try {
     const orderRef = db
       .collection("users")
@@ -448,7 +459,10 @@ app.get("/orders/:id", async (req, res) => {
 
 app.patch("/orders/:id", async (req, res) => {
   const { id } = req.params;
-  const userId = storage.getItem("userId");
+  let userId = storage.getItem("userId");
+  if (!userId) {
+    userId = req.body.userId;
+  }
   const { orderStatus } = req.body;
   try {
     const userOrderRef = db
@@ -720,11 +734,8 @@ app.put("/cart/:id", async (req, res) => {
 });
 
 // Route to delete an item from the cart
-app.delete("/cart/:id", async (req, res) => {
-  let userId = storage.getItem("userId");
-  if (!userId) {
-    userId = req.body.userId;
-  }
+app.delete("/cart/:id/:userId", async (req, res) => {
+  let userId = storage.getItem("userId") || req.params.userId;
   const cartItemId = req.params.id;
 
   try {
@@ -817,13 +828,15 @@ app.post("/categories", async (req, res) => {
 });
 
 // Route to create a new location
-  
+
 app.post("/locations", upload.single("image"), async (req, res) => {
   const { name, address } = req.body;
   const file = req.file;
 
   if (!name || !address) {
-    return res.status(400).json({ error: "Location name and address are required" });
+    return res
+      .status(400)
+      .json({ error: "Location name and address are required" });
   }
 
   try {
@@ -973,7 +986,9 @@ app.get("/get-all-promos", async (req, res) => {
       promoCodes.push({
         code: doc.id,
         // Convert decimal back to percentage
-        expirationDate: new Date(promoData.expirationDate._seconds * 1000).toISOString(), // Format date and time as ISO string
+        expirationDate: new Date(
+          promoData.expirationDate._seconds * 1000
+        ).toISOString(), // Format date and time as ISO string
       });
     });
     res.json(promoCodes);
@@ -981,8 +996,7 @@ app.get("/get-all-promos", async (req, res) => {
     console.error("Error fetching promo codes:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
-}); 
-
+});
 
 const port = 4200;
 app.listen(port, () => {
