@@ -364,6 +364,7 @@ app.post("/orders", async (req, res) => {
   if (!userId) {
     userId = req.body.userId;
   }
+  console.log(userId);
   const orderStoreData = {
     ...orderData,
     userId: userId,
@@ -386,6 +387,7 @@ app.post("/orders", async (req, res) => {
     await newOrderRef.set(orderData);
     const orderRef = db.collection("order").doc(newOrderRef.id);
     await orderRef.set(orderStoreData);
+    console.log(newOrderRef.id);
     res.status(201).json({
       message: "Order placed successfully",
       orderId: newOrderRef.id,
@@ -411,10 +413,10 @@ app.get("/orders", async (req, res) => {
   }
 });
 // Route to fetch all orders
-app.get("/ordersByUser", async (req, res) => {
+app.get("/ordersByUser/:id", async (req, res) => {
   let userId = storage.getItem("userId");
   if (!userId) {
-    userId = req.body.userId;
+    userId = req.params.id;
   }
   try {
     const snapshot = await db
@@ -995,6 +997,69 @@ app.get("/get-all-promos", async (req, res) => {
   } catch (error) {
     console.error("Error fetching promo codes:", error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+app.get("/user/:id", async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const userRef = db.collection("users").doc(userId);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json({ userId: userDoc.id, ...userDoc.data() });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ error: "Failed to fetch user" });
+  }
+});
+
+app.put("/user/:id", async (req, res) => { 
+  const userId = req.params.id;
+  const updatedUserData = req.body;
+  console.log(updatedUserData);
+
+  try {
+    const userRef = db.collection("users").doc(userId);
+    await userRef.update(updatedUserData);
+    res.status(200).json({ message: "User updated successfully" });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ error: "Failed to update user" });
+  }
+});
+
+app.post("/userImg", upload.single("image"), async (req, res) => {
+  const userId = storage.getItem("userId");
+  const file = req.file;
+
+  try {
+    if (!file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const fileName = `users/${userId}/${Date.now()}-${file.originalname}`;
+    const fileUpload = bucket.file(fileName);
+
+    await fileUpload.save(file.buffer, {
+      contentType: file.mimetype,
+    });
+
+    await fileUpload.makePublic();
+
+    const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+
+    const userRef = db.collection("users").doc(userId);
+    await userRef.update({ imageUrl });
+
+    res.status(201).json({
+      message: "Image uploaded successfully",
+      imageUrl,
+    });
+  } catch (error) {
+    logger.error("Error uploading image:", error);
+    res.status(500).json({ error: "Failed to upload image" });
   }
 });
 
