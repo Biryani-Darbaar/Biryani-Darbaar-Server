@@ -760,28 +760,28 @@ app.patch("/ordersAdmin/:id", async (req, res) => {
     res.status(500).send("Error updating order status");
   }
 });
-app.get("/categories", async (req, res) => {
-  try {
-    const categoriesRef = db.collection("category");
-    const querySnapshot = await categoriesRef.get();
+// app.get("/categories", async (req, res) => {
+//   try {
+//     const categoriesRef = db.collection("category");
+//     const querySnapshot = await categoriesRef.get();
 
-    if (querySnapshot.empty) {
-      return res.status(404).json({ message: "No categories found" });
-    }
+//     if (querySnapshot.empty) {
+//       return res.status(404).json({ message: "No categories found" });
+//     }
 
-    const categories = [];
-    querySnapshot.forEach((doc) => {
-      categories.push({ id: doc.id, ...doc.data() });
-    });
+//     const categories = [];
+//     querySnapshot.forEach((doc) => {
+//       categories.push({ id: doc.id, ...doc.data() });
+//     });
 
-    return res.status(200).json(categories);
-  } catch (error) {
-    console.error("Error retrieving categories:", error);
-    return res
-      .status(500)
-      .json({ message: "Error retrieving categories", error: error.message });
-  }
-});
+//     return res.status(200).json(categories);
+//   } catch (error) {
+//     console.error("Error retrieving categories:", error);
+//     return res
+//       .status(500)
+//       .json({ message: "Error retrieving categories", error: error.message });
+//   }
+// });
 //to create new category
 
 app.post("/categories", async (req, res) => {

@@ -119,18 +119,38 @@ app.post("/dishes", upload.single("image"), async (req, res) => {
 
 app.get("/dishes/category/:category", async (req, res) => {
   const category = req.params.category;
+  const userId = storage.getItem("userId");
   try {
     // Reference the 'dishes' sub-collection within the category document
+    console.log("------------------------------------",userId);
+    
+    const userRef = db.collection("users").doc(userId);
+    const userSnapshot = await userRef.get();
+    if (!userSnapshot.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const user = userSnapshot.data();
     const dishesSnapshot = await db
       .collection("category")
       .doc(category)
       .collection("dishes")
       .get();
-
     const dishes = [];
     dishesSnapshot.forEach((doc) => {
-      dishes.push({ dishId: doc.id, ...doc.data() });
+      const dish = doc.data();
+      if (user.goldMember) {
+        const { goldPrice, ...rest } = dish;
+        dishes.push({ dishId: doc.id, ...rest, price: goldPrice });
+      } else {
+        const { goldPrice, ...rest } = dish;
+        dishes.push({ dishId: doc.id, ...rest });
+      }
     });
+
+    // const dishes = [];
+    // dishesSnapshot.forEach((doc) => {
+    //   dishes.push({ dishId: doc.id, ...doc.data() });
+    // });
 
     res.json(dishes);
   } catch (error) {
@@ -168,9 +188,17 @@ app.get("/categories", async (req, res) => {
 //   }
 // })
 app.get("/dishes/:cat", async (req, res) => {
+  const userId = storage.getItem("userId");
   try {
+    const userRef = db.collection("users").doc(userId);
+    const userSnapshot = await userRef.get();
+    if (!userSnapshot.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const user = userSnapshot.data();
     const categoriesSnapshot = await db.collection("category").get();
     const allDishes = [];
+    console.log("Lanja mundu dengithe devara anthaav");
 
     if (categoriesSnapshot.empty) {
       console.log("No categories found in Firestore.");
@@ -194,11 +222,14 @@ app.get("/dishes/:cat", async (req, res) => {
         console.log(`No dishes found in category: ${categoryName}`);
       } else {
         dishesSnapshot.forEach((dishDoc) => {
-          allDishes.push({
-            dishId: dishDoc.id,
-            category: categoryName,
-            ...dishDoc.data(),
-          });
+          const dish = dishDoc.data();
+          if (user.goldMember) {
+            const { goldPrice, ...rest } = dish;
+            allDishes.push({ dishId: dishDoc.id, category: categoryName, ...rest, price: goldPrice });
+          } else {
+            const { goldPrice, ...rest } = dish;
+            allDishes.push({ dishId: dishDoc.id, category: categoryName, ...rest });
+          }
           console.log(`Found dish: ${dishDoc.id} in category: ${categoryName}`);
         });
       }
@@ -542,7 +573,8 @@ app.post("/login", async (req, res) => {
     req.session.loginTimestamp = Date.now();
     req.session.id = Date.now();
     storage.setItem("userId", req.session.userId);
-
+    console.log(storage.getItem("userId"));
+    
     res.status(200).send({
       message: "Login successful",
       sessionId: req.session.loginTimestamp,
@@ -775,28 +807,28 @@ app.patch("/ordersAdmin/:id", async (req, res) => {
     res.status(500).send("Error updating order status");
   }
 });
-app.get("/categories", async (req, res) => {
-  try {
-    const categoriesRef = db.collection("category");
-    const querySnapshot = await categoriesRef.get();
+// app.get("/categories", async (req, res) => {
+//   try {
+//     const categoriesRef = db.collection("category");
+//     const querySnapshot = await categoriesRef.get();
 
-    if (querySnapshot.empty) {
-      return res.status(404).json({ message: "No categories found" });
-    }
+//     if (querySnapshot.empty) {
+//       return res.status(404).json({ message: "No categories found" });
+//     }
 
-    const categories = [];
-    querySnapshot.forEach((doc) => {
-      categories.push({ id: doc.id, ...doc.data() });
-    });
+//     const categories = [];
+//     querySnapshot.forEach((doc) => {
+//       categories.push({ id: doc.id, ...doc.data() });
+//     });
 
-    return res.status(200).json(categories);
-  } catch (error) {
-    console.error("Error retrieving categories:", error);
-    return res
-      .status(500)
-      .json({ message: "Error retrieving categories", error: error.message });
-  }
-});
+//     return res.status(200).json(categories);
+//   } catch (error) {
+//     console.error("Error retrieving categories:", error);
+//     return res
+//       .status(500)
+//       .json({ message: "Error retrieving categories", error: error.message });
+//   }
+// });
 //to create new category
 
 app.post("/categories", async (req, res) => {
@@ -1063,6 +1095,167 @@ app.post("/userImg", upload.single("image"), async (req, res) => {
   }
 });
 
+// Middleware to check if the collection has less than 5 documents
+const checkCollectionLimit = async (req, res, next) => {
+  try {
+    const gamesSnapshot = await db.collection("miniGames").get();
+    if (gamesSnapshot.size >= 6) {
+      return res.status(400).json({ error: "Collection limit reached" });
+    }
+    next();
+  } catch (error) {
+    logger.error("Error checking collection limit:", error);
+    res.status(500).json({ error: "Failed to check collection limit" });
+  }
+};
+
+// Create a new mini game
+app.post("/miniGames", checkCollectionLimit, async (req, res) => {
+  const { name, value } = req.body;
+
+  if (!name || !value) {
+    return res.status(400).json({ error: "Name and offer are required" });
+  }
+
+  try {
+    const gameRef = db.collection("miniGames").doc();
+    await gameRef.set({ name, value });
+    res.status(201).json({ message: "Mini game created successfully", gameId: gameRef.id });
+  } catch (error) {
+    logger.error("Error creating mini game:", error);
+    res.status(500).json({ error: "Failed to create mini game" });
+  }
+});
+
+// Get all mini games
+app.get("/miniGames", async (req, res) => {
+  try {
+    const gamesSnapshot = await db.collection("miniGames").get();
+    const games = [];
+    gamesSnapshot.forEach((doc) => {
+      games.push({ gameId: doc.id, ...doc.data() });
+    });
+    res.json(games);
+  } catch (error) {
+    logger.error("Error fetching mini games:", error);
+    res.status(500).json({ error: "Failed to fetch mini games" });
+  }
+});
+
+// Update a mini game by ID
+app.put("/miniGames/:id", async (req, res) => {
+  const gameId = req.params.id;
+  const { name, value } = req.body;
+
+  if (!name || !offer) {
+    return res.status(400).json({ error: "Name and offer are required" });
+  }
+
+  try {
+    const gameRef = db.collection("miniGames").doc(gameId);
+    await gameRef.update({ name, offer });
+    res.status(200).json({ message: "Mini game updated successfully" });
+  } catch (error) {
+    logger.error("Error updating mini game:", error);
+    res.status(500).json({ error: "Failed to update mini game" });
+  }
+});
+
+// Delete a mini game by ID
+app.delete("/miniGames/:id", async (req, res) => {
+  const gameId = req.params.id;
+
+  try {
+    const gameRef = db.collection("miniGames").doc(gameId);
+    await gameRef.delete();
+    res.status(200).json({ message: "Mini game deleted successfully" });
+  } catch (error) {
+    logger.error("Error deleting mini game:", error);
+    res.status(500).json({ error: "Failed to delete mini game" });
+  }
+});
+
+app.put("/user/goldMember/:id", async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    const userRef = db.collection("users").doc(userId);
+    await userRef.update({ goldMember: true });
+    res.status(200).json({ message: "User updated to gold member successfully" });
+  } catch (error) {
+    logger.error("Error updating user to gold member:", error);
+    res.status(500).json({ error: "Failed to update user to gold member" });
+  }
+});
+
+app.put("/goldDiscountApply", async (req, res) => {
+  const { discountPercentage } = req.body;
+
+  if (!discountPercentage) {
+    return res.status(400).json({ error: "Discount percentage is required" });
+  }
+
+  try {
+    const categoriesSnapshot = await db.collection("category").get();
+
+    for (const categoryDoc of categoriesSnapshot.docs) {
+      const categoryId = categoryDoc.id;
+      const dishesSnapshot = await db
+        .collection("category")
+        .doc(categoryId)
+        .collection("dishes")
+        .get();
+
+      const updatePromises = [];
+      dishesSnapshot.forEach((dishDoc) => {
+        const dishData = dishDoc.data();
+        const originalPrice = dishData.price;
+        const goldPrice = originalPrice - (originalPrice * discountPercentage) / 100;
+        updatePromises.push(
+          dishDoc.ref.update({ goldPrice })
+        );
+      });
+
+      await Promise.all(updatePromises);
+    }
+
+    res.status(200).json({ message: "Discount applied successfully to all dishes" });
+  } catch (error) {
+    logger.error("Error applying discount:", error);
+    res.status(500).json({ error: "Failed to apply discount" });
+  }
+});
+
+app.put("/updateDishesGoldPrice", async (req, res) => {
+  const { category, discountValue } = req.body;
+
+  if (!category || !discountValue) {
+    return res.status(400).json({ error: "Category and discount value are required" });
+  }
+
+  try {
+    const categoryRef = db.collection("category").doc(category);
+    const dishesSnapshot = await categoryRef.collection("dishes").get();
+
+    if (dishesSnapshot.empty) {
+      return res.status(404).json({ error: "No dishes found in the specified category" });
+    }
+
+    const updatePromises = [];
+    dishesSnapshot.forEach((dishDoc) => {
+      const dishData = dishDoc.data();
+      const originalPrice = dishData.price;
+      const newPrice = originalPrice - (originalPrice * discountValue) / 100;
+      updatePromises.push(dishDoc.ref.update({ goldPrice: newPrice }));
+    });
+
+    await Promise.all(updatePromises);
+    res.status(200).json({ message: "Prices updated successfully" });
+  } catch (error) {
+    logger.error("Error updating prices:", error);
+    res.status(500).json({ error: "Failed to update prices" });
+  }
+});
 const port = 4200;
 app.listen(port, () => {
   logger.info(`Server is running on port ${port}`);
