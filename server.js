@@ -53,9 +53,9 @@ const upload = multer({
 
 // Route to upload images and store metadata in Firestore
 app.post("/dishes", upload.single("image"), async (req, res) => {
-  const dishData = JSON.parse(req.body.dishData); // Parse the JSON data sent by the client
-  const file = req.file; // The uploaded image
-  const category = dishData.category; // Extract category from dishData
+    const dishData = JSON.parse(req.body.dishData); // Parse the JSON data sent by the client
+    const file = req.file; // The uploaded image
+    const category = dishData.category; // Extract category from dishData
 
   try {
     let imageUrl = "";
@@ -1365,6 +1365,113 @@ app.get("/specialOffers", async (req, res) => {
   }
 });
 
+
+app.put("/order/status/:id", async (req, res) => {
+  const {id} = req.params;
+  const {orderStatus} = req.body;
+  try{
+    const orderRef = db.collection("order").doc(id);
+    if(orderRef.empty){
+      return res.status(404).json({error: "Dish not found"});
+    }
+    await orderRef.update({orderStatus: orderStatus});
+    res.status(200).json({ message: "Dish status updated successfully" });
+  }
+  catch(error){
+    logger.error("Error updating dish status:", error);
+    res.status(500).json({ error: "Failed to update dish status" });
+  }
+});
+
+app.get("/dishes/admin/:category", async(req,res) =>{
+  const category =req.params.category;
+  try{
+    const dishesSnapshot = await db.collection("category").doc(category).collection("dishes").get();
+    const dishes = [];
+    dishesSnapshot.forEach((doc) => {
+      dishes.push({ dishId: doc.id, ...doc.data() });
+    });
+    res.json(dishes);
+  }catch (error) {
+    logger.error("Error fetching dishes:", error);
+    res.status(500).json({ error: "Failed to fetch dishes" });
+  }
+})
+
+app.patch("/dishes/admin/:category/:id", upload.single("image"), async (req, res) => {
+  const { category, id: dishId } = req.params;
+  const updatedDishData = req.body ;
+  console.log(updatedDishData);
+  
+  const file = req.file;
+
+  try {
+    const dishRef = db.collection("category").doc(category).collection("dishes").doc(dishId);
+    const dishDoc = await dishRef.get();
+
+    if (!dishDoc.exists) {
+      return res.status(404).json({ error: "Dish not found" });
+    }
+
+    let imageUrl = updatedDishData.image;
+
+    if (file) {
+      // If there is a new file, delete the old image from Firebase Storage
+      const oldDishData = dishDoc.data();
+      const oldImageUrl = oldDishData.image;
+      console.log(oldImageUrl);
+      
+
+      if (oldImageUrl) {
+        const oldFileName = oldImageUrl.split("/").slice(4).join("/");
+        console.log(oldFileName);
+        const oldFile = bucket.file(oldFileName);
+        console.log(oldFile);
+       
+        await oldFile.delete();
+      }
+
+      // Upload the new image
+      const fileName = `${category}/${Date.now()}-${file.originalname}`;
+      const fileUpload = bucket.file(fileName);
+
+      await fileUpload.save(file.buffer, {
+        contentType: file.mimetype,
+      });
+
+      await fileUpload.makePublic();
+      imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+      
+      // Prepare the updated dish data
+      const updatedDishDataWithImage = {
+        ...updatedDishData,
+        image: imageUrl,
+      };
+      // Update the dish document in Firestore
+      await dishRef.update(updatedDishDataWithImage);
+  
+      res.status(200).json({
+        message: "Dish updated successfully",
+        imageUrl,
+      });
+      return;
+    }
+    const updatedDishDataWithoutImage = {
+      ...updatedDishData
+    };
+
+    await dishRef.update(updatedDishDataWithoutImage);
+    res.status(200).json({
+      message: "Dish updated successfully",
+    });
+
+
+  } catch (error) {
+    logger.error("Error updating dish:", error);
+    res.status(500).json({ error: "Failed to update dish" });
+  }
+});
+  
 const port = 4200;
 app.listen(port, () => {
   logger.info(`Server is running on port ${port}`);
