@@ -1256,6 +1256,115 @@ app.put("/updateDishesGoldPrice", async (req, res) => {
     res.status(500).json({ error: "Failed to update prices" });
   }
 });
+
+app.get("/getUsers", async (req, res) =>{
+  try{
+    const usersSnapshot = await db.collection("users").get();
+    const users = [];
+    usersSnapshot.forEach((doc) => {
+      users.push({ userId: doc.id, ...doc.data() });
+    });
+    res.json(users);
+  }catch (error) {
+    logger.error("Error fetching users:", error);
+    res.status(500).json({ error: "Failed to fetch users" });
+  }
+})
+
+app.get("/daily-summary", async (req, res) => {  
+  try {
+    const ordersSnapshot = await db.collection("order").get();
+    const dailySummary = {};
+    if(ordersSnapshot.empty){
+      return res.status(404).json({ error: "No orders found" });
+    }
+    ordersSnapshot.forEach((doc) => {
+      const orderData = doc.data();
+      let orderDate;
+
+      // Check if orderDate is a string or a Firestore Timestamp
+      if (typeof orderData.orderDate === 'string') {
+      orderDate = new Date(orderData.orderDate).toISOString().split('T')[0];
+      } else if (orderData.orderDate instanceof admin.firestore.Timestamp) {
+      orderDate = orderData.orderDate.toDate().toISOString().split('T')[0];
+      } else {
+      console.error("Unknown date format:", orderData.orderDate);
+      return;
+      }
+
+      if (!dailySummary[orderDate]) {
+      dailySummary[orderDate] = 0;
+      }
+      dailySummary[orderDate]++;
+    });
+    res.json(dailySummary);
+  } catch (error) {
+    logger.error("Error fetching daily summary:", error);
+    res.status(500).json({ error: "Failed to fetch daily summary", message: error.message });
+  }
+});
+
+app.put("/dishes/discount/:category/:id", async (req, res) => {
+  const { category, id: dishId } = req.params;
+  const { discount } = req.body;
+
+  if (!discount) {
+    return res.status(400).json({ error: "Discount value is required" });
+  }
+
+  try {
+    const dishRef = db.collection("category").doc(category).collection("dishes").doc(dishId);
+    const dishDoc = await dishRef.get();
+
+    if (!dishDoc.exists) {
+      return res.status(404).json({ error: "Dish not found" });
+    }
+
+    await dishRef.update({
+      offerAvailable: true,
+      discount: discount,
+    });
+
+    res.status(200).json({ message: "Discount applied successfully", discount });
+  } catch (error) {
+    logger.error("Error applying discount:", error);
+    res.status(500).json({ error: "Failed to apply discount" });
+  }
+});
+
+app.get("/specialOffers", async (req, res) => {
+  try {
+    const categoriesSnapshot = await db.collection("category").get();
+    const specialOffers = [];
+
+    for (const categoryDoc of categoriesSnapshot.docs) {
+      const categoryId = categoryDoc.id;
+      const dishesSnapshot = await db
+        .collection("category")
+        .doc(categoryId)
+        .collection("dishes")
+        .where("offerAvailable", "==", true)
+        .get();
+
+      dishesSnapshot.forEach((dishDoc) => {
+        const dishData = dishDoc.data();
+        const discountedPrice = dishData.price - (dishData.price * dishData.discount) / 100;
+        specialOffers.push({
+          dishId: dishDoc.id,
+          category: categoryId,
+          ...dishData,
+          price: discountedPrice,
+        });
+      });
+    }
+
+    res.json(specialOffers);
+  } catch (error) {
+    logger.error("Error fetching special offers:", error);
+    res.status(500).json({ error: "Failed to fetch special offers" });
+  }
+});
+
 const port = 4200;
 app.listen(port, () => {
   logger.info(`Server is running on port ${port}`);
