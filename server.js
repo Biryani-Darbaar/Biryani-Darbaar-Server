@@ -1019,7 +1019,7 @@ app.get("/get-all-promos", async (req, res) => {
       const promoData = doc.data();
       promoCodes.push({
         code: doc.id,
-        // Convert decimal back to percentage
+        discount: promoData.discount * 100, // Convert decimal back to percentage
         expirationDate: new Date(
           promoData.expirationDate._seconds * 1000
         ).toISOString(), // Format date and time as ISO string
