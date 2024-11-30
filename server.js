@@ -727,6 +727,26 @@ app.post("/cart", async (req, res) => {
   try {
     console.log(userId);
     const cartRef = db.collection("users").doc(userId).collection("cart").doc();
+    const cartSnapshot = await db
+      .collection("users")
+      .doc(userId)
+      .collection("cart")
+      .get();
+
+    let itemExists = false;
+
+    cartSnapshot.forEach((doc) => {
+      const cartItemData = doc.data();
+      if (cartItemData.dishId === cartItem.dishId) {
+        itemExists = true;
+        const newQuantity = cartItemData.quantity + cartItem.quantity;
+        doc.ref.update({ quantity: newQuantity });
+      }
+    });
+
+    if (!itemExists) {
+      await cartRef.set(cartItem);
+    }
     await cartRef.set(cartItem);
 
     res.status(201).json({
