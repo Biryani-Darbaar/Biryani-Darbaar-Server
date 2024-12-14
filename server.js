@@ -1,5 +1,7 @@
 const morgan = require("morgan");
 const logger = require("./logger"); // Import the logger
+const cacheController = require("express-cache-controller");
+
 const express = require("express");
 const admin = require("firebase-admin");
 const multer = require("multer");
@@ -11,9 +13,10 @@ const firebase = require("firebase/app");
 const bodyParser = require("body-parser");
 const Stripe = require("stripe");
 const stripe = Stripe(
-  "sk_test_51QI9zGP1mrjxuTnQTDIs3bGL2uG5IBEQ2OzCdNRz0jmjTEM2sCKgoI1ZUwKNLkWP08Y6YtJMBd7CoQ8tEGgFHUGL00gBw5aDE2"
+  "pk_live_51QI9zGP1mrjxuTnQnqhMuVG5AdSpjp4b50Vy8N51uOhErUBttIEVaq2c6yIl1lS8vpqsYWtVpefkY2SPkB9lwx1C004cMMf16E"
 );
 require("firebase/auth");
+//const nocache = require('nocache')
 
 // Initialize Firebase Admin SDK
 const serviceAccount = require("./serviceAccountKey.json"); // Path to your Firebase service account key
@@ -27,18 +30,23 @@ admin.initializeApp({
 
 const db = admin.firestore();
 const bucket = getStorage().bucket();
-
+const onHeaders = require("on-headers");
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
-
+//app.use(nocache());
+app.set("etag", false);
+app.set({ viewEngine: "ejs", cache: false });
 // Setup morgan for HTTP request logging
 app.use(
   morgan("combined", {
     stream: { write: (message) => logger.info(message.trim()) },
   })
 );
-
+app.use((req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
 app.use(
   session({
     secret: "secret",
@@ -50,7 +58,13 @@ app.use(
 const upload = multer({
   storage: multer.memoryStorage(), // Store the file in memory temporarily
 });
-
+app.use(cacheController({ debug: true }));
+//app.use((req, res, next) => {
+// listen for the headers event
+//  onHeaders(res, () => {
+//    this.removeHeader('ETag');
+// });
+//});
 // Route to upload images and store metadata in Firestore
 app.post("/dishes", upload.single("image"), async (req, res) => {
   const dishData = JSON.parse(req.body.dishData); // Parse the JSON data sent by the client
@@ -127,32 +141,38 @@ app.post("/dishes", upload.single("image"), async (req, res) => {
 app.get("/dishes/category/:category", async (req, res) => {
   const category = req.params.category;
   const userId = storage.getItem("userId");
+
   try {
-    // Reference the 'dishes' sub-collection within the category document
-    console.log("------------------------------------", userId);
-    let user;
+    console.log("Request received for category:", category, "User ID:", userId);
+
+    let user = null;
+
+    // Fetch user data if userId exists
     if (userId) {
       const userRef = db.collection("users").doc(userId);
       const userSnapshot = await userRef.get();
       if (!userSnapshot.exists) {
+        // Return early if user is not found
         return res.status(404).json({ error: "User not found" });
       }
       user = userSnapshot.data();
     }
+
+    // Fetch dishes within the category
     const dishesSnapshot = await db
       .collection("category")
       .doc(category)
       .collection("dishes")
       .get();
+
     const dishes = [];
+
     dishesSnapshot.forEach((doc) => {
       const dish = doc.data();
       if (dish.available) {
-        if (userId) {
-          if (user.goldMember) {
-            const { goldPrice, ...rest } = dish;
-            dishes.push({ dishId: doc.id, ...rest, price: goldPrice });
-          }
+        if (userId && user?.goldMember) {
+          const { goldPrice, ...rest } = dish;
+          dishes.push({ dishId: doc.id, ...rest, price: goldPrice });
         } else {
           const { goldPrice, ...rest } = dish;
           dishes.push({ dishId: doc.id, ...rest });
@@ -160,15 +180,11 @@ app.get("/dishes/category/:category", async (req, res) => {
       }
     });
 
-    // const dishes = [];
-    // dishesSnapshot.forEach((doc) => {
-    //   dishes.push({ dishId: doc.id, ...doc.data() });
-    // });
-
-    res.json(dishes);
+    // Send the response once
+    return res.json(dishes);
   } catch (error) {
-    logger.error("Error fetching dishes:", error);
-    res.status(500).json({ error: "Failed to fetch dishes" });
+    console.error("Error fetching dishes:", error);
+    return res.status(500).json({ error: "Failed to fetch dishes" });
   }
 });
 
@@ -441,10 +457,34 @@ app.post("/orders", async (req, res) => {
     const orderRef = db.collection("order").doc(newOrderRef.id);
     await orderRef.set(orderStoreData);
     console.log(newOrderRef.id);
+
+    // Calculate rewards based on totalPrice
+    const rewardRef = db.collection("rewards").doc("rewardDoc");
+    const rewardDoc = await rewardRef.get();
+    if (!rewardDoc.exists) {
+      return res.status(404).json({ error: "Reward data not found" });
+    }
+    const rewardData = rewardDoc.data();
+    let dollarValue = 0;
+    if (rewardData.reward === 1) {
+      dollarValue = 10 * rewardData.dollar;
+    } else {
+      const localDollar = rewardData.dollar / rewardData.reward;
+      dollarValue = 10 * localDollar;
+    }
+    const totalPrice = orderData.totalPrice;
+    const rewardsEarned = Math.floor(totalPrice / rewardData.dollar);
+    const newRewardValue = (userSnapshot.data().reward || 0) + rewardsEarned;
+
+    // Update user's reward value
+    await userRef.update({ reward: newRewardValue });
+
     res.status(201).json({
       message: "Order placed successfully",
       orderId: newOrderRef.id,
       orderData: orderStoreData,
+      rewardsEarned,
+      newRewardValue,
     });
   } catch (error) {
     logger.error("Error placing order:", error);
@@ -747,7 +787,6 @@ app.post("/cart", async (req, res) => {
     if (!itemExists) {
       await cartRef.set(cartItem);
     }
-    await cartRef.set(cartItem);
 
     res.status(201).json({
       message: "Item added to cart successfully",
@@ -814,7 +853,6 @@ app.delete("/cart/:id", async (req, res) => {
   let userId = storage.getItem("userId");
   const cartItemId = req.params.id;
   console.log(userId, cartItemId);
-  
 
   try {
     const cartRef = db
@@ -964,6 +1002,94 @@ app.get("/locations", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch locations" });
   }
 });
+// Update a location by ID
+app.put("/locations/:id", upload.single("image"), async (req, res) => {
+  const locationId = req.params.id;
+  const { name, address } = req.body;
+  const file = req.file;
+
+  if (!name || !address) {
+    return res
+      .status(400)
+      .json({ error: "Location name and address are required" });
+  }
+
+  try {
+    const locationRef = db.collection("location").doc(locationId);
+    const locationDoc = await locationRef.get();
+
+    if (!locationDoc.exists) {
+      return res.status(404).json({ error: "Location not found" });
+    }
+
+    let imageUrl = locationDoc.data().image;
+
+    if (file) {
+      // Delete the old image from Firebase Storage if it exists
+      if (imageUrl) {
+        const oldFileName = imageUrl.split("/").pop();
+        const oldFile = bucket.file(oldFileName);
+        await oldFile.delete();
+      }
+
+      // Upload the new image
+      const fileName = `locations/${Date.now()}-${file.originalname}`;
+      const fileUpload = bucket.file(fileName);
+
+      await fileUpload.save(file.buffer, {
+        contentType: file.mimetype,
+      });
+
+      await fileUpload.makePublic();
+      imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+    }
+
+    await locationRef.update({ name, address, image: imageUrl });
+
+    res.status(200).json({
+      message: "Location updated successfully",
+      locationId,
+      name,
+      address,
+      imageUrl,
+    });
+  } catch (error) {
+    logger.error("Error updating location:", error);
+    res.status(500).json({ error: "Failed to update location" });
+  }
+});
+
+// Delete a location by ID
+app.delete("/locations/:id", async (req, res) => {
+  const locationId = req.params.id;
+
+  try {
+    const locationRef = db.collection("location").doc(locationId);
+    const locationDoc = await locationRef.get();
+
+    if (!locationDoc.exists) {
+      return res.status(404).json({ error: "Location not found" });
+    }
+
+    const locationData = locationDoc.data();
+    const imageUrl = locationData.image;
+
+    // Delete the location document
+    await locationRef.delete();
+
+    // If an image URL exists, delete the image from Firebase Storage
+    if (imageUrl) {
+      const fileName = imageUrl.split("/").slice(4).join("/");
+      const file = bucket.file(fileName);
+      await file.delete();
+    }
+
+    res.status(200).json({ message: "Location deleted successfully" });
+  } catch (error) {
+    logger.error("Error deleting location:", error);
+    res.status(500).json({ error: "Failed to delete location" });
+  }
+});
 
 app.post("/create-payment-intent", async (req, res) => {
   try {
@@ -1108,13 +1234,17 @@ app.put("/user/:id", async (req, res) => {
 
 app.post("/userImg", upload.single("image"), async (req, res) => {
   const userId = storage.getItem("userId");
+  console.log(userId);
+
   const file = req.file;
 
   try {
     if (!file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
-
+    if (!userId) {
+      return res.status(400).json({ error: "No user found" });
+    }
     const fileName = `users/${userId}/${Date.now()}-${file.originalname}`;
     const fileUpload = bucket.file(fileName);
 
@@ -1155,7 +1285,7 @@ const checkCollectionLimit = async (req, res, next) => {
 
 // Create a new mini game
 app.post("/miniGames", checkCollectionLimit, async (req, res) => {
-  const { name, value } = req.body;
+  const { name, value, type } = req.body;
 
   if (!name || !value) {
     return res.status(400).json({ error: "Name and offer are required" });
@@ -1163,7 +1293,7 @@ app.post("/miniGames", checkCollectionLimit, async (req, res) => {
 
   try {
     const gameRef = db.collection("miniGames").doc();
-    await gameRef.set({ name, value });
+    await gameRef.set({ name, value, type });
     res
       .status(201)
       .json({ message: "Mini game created successfully", gameId: gameRef.id });
@@ -1191,15 +1321,15 @@ app.get("/miniGames", async (req, res) => {
 // Update a mini game by ID
 app.put("/miniGames/:id", async (req, res) => {
   const gameId = req.params.id;
-  const { name, value } = req.body;
+  const { name, value, type } = req.body;
 
-  if (!name || !offer) {
+  if (!name || !value || !type) {
     return res.status(400).json({ error: "Name and offer are required" });
   }
 
   try {
     const gameRef = db.collection("miniGames").doc(gameId);
-    await gameRef.update({ name, offer });
+    await gameRef.update({ name, value, type });
     res.status(200).json({ message: "Mini game updated successfully" });
   } catch (error) {
     logger.error("Error updating mini game:", error);
@@ -1408,8 +1538,11 @@ app.get("/specialOffers", async (req, res) => {
         const dishData = dishDoc.data();
         console.log(dishData.discount);
         if (dishData.available) {
-            const discountedPrice =
-            Math.round((dishData.price - (dishData.price * dishData.discount) / 100) * 100) / 100;
+          const discountedPrice =
+            Math.round(
+              (dishData.price - (dishData.price * dishData.discount) / 100) *
+                100
+            ) / 100;
           specialOffers.push({
             dishId: dishDoc.id,
             category: categoryId,
@@ -1429,13 +1562,23 @@ app.get("/specialOffers", async (req, res) => {
 
 app.put("/order/status/:id", async (req, res) => {
   const { id } = req.params;
-  const { orderStatus } = req.body;
+  const { orderStatus, userId } = req.body;
+  console.log(orderStatus, userId);
+
   try {
     const orderRef = db.collection("order").doc(id);
-    if (orderRef.empty) {
+    const userRef = db
+      .collection("users")
+      .doc(userId)
+      .collection("orders")
+      .doc(id);
+    const orderDoc = await orderRef.get();
+    if (!orderDoc.exists) {
       return res.status(404).json({ error: "Dish not found" });
     }
     await orderRef.update({ orderStatus: orderStatus });
+    const response = await userRef.update({ orderStatus: orderStatus });
+    console.log("-------------gudda chekkuthaa", response);
     res.status(200).json({ message: "Dish status updated successfully" });
   } catch (error) {
     logger.error("Error updating dish status:", error);
@@ -1543,15 +1686,35 @@ app.patch(
 
 app.post("/goldPrice", async (req, res) => {
   const { goldPrice } = req.body;
+  console.log(goldPrice);
+  console.log(typeof goldPrice);
 
   if (typeof goldPrice !== "number" || goldPrice < 0 || goldPrice > 100) {
     return res.status(400).json({ error: "Invalid gold price percentage" });
   }
-
   try {
     const goldPriceRef = db.collection("goldprice").doc("current");
     await goldPriceRef.set({ goldPrice });
-
+    const categoriesSnapshot = await db.collection("category").get();
+    const updatePromises = [];
+    for (const categoryDoc of categoriesSnapshot.docs) {
+      const categoryId = categoryDoc.id;
+      const dishesSnapshot = await db
+        .collection("category")
+        .doc(categoryId)
+        .collection("dishes")
+        .get();
+      dishesSnapshot.forEach((dishDoc) => {
+        const dishData = dishDoc.data();
+        const originalPrice = dishData.price;
+        const newPrice =
+          Math.round(
+            (originalPrice - (originalPrice * goldPrice) / 100) * 100
+          ) / 100;
+        updatePromises.push(dishDoc.ref.update({ goldPrice: newPrice }));
+      });
+    }
+    await Promise.all(updatePromises);
     res.status(201).json({ message: "Gold price updated successfully" });
   } catch (error) {
     logger.error("Error updating gold price:", error);
@@ -1608,7 +1771,117 @@ app.patch("/availability", async (req, res) => {
   }
 });
 
-const port = 4200;
+// Route to create or update a reward
+app.post("/rewards", async (req, res) => {
+  const { reward, dollar } = req.body;
+
+  if (!reward || !dollar) {
+    return res
+      .status(400)
+      .json({ error: "Reward and dollar values are required" });
+  }
+
+  try {
+    const rewardRef = db.collection("rewards").doc("rewardDoc");
+    const doc = await rewardRef.get();
+
+    if (doc.exists) {
+      // Update the existing document
+      await rewardRef.update({ reward, dollar });
+      res.status(200).json({ message: "Reward updated successfully" });
+    } else {
+      // Create a new document
+      await rewardRef.set({ reward, dollar });
+      res.status(201).json({ message: "Reward created successfully" });
+    }
+  } catch (error) {
+    logger.error("Error creating or updating reward:", error);
+    res.status(500).json({ error: "Failed to create or update reward" });
+  }
+});
+
+// Route to get all rewards
+app.get("/rewards", async (req, res) => {
+  try {
+    const rewardsSnapshot = await db.collection("rewards").get();
+    const rewards = [];
+
+    rewardsSnapshot.forEach((doc) => {
+      rewards.push({ reward: doc.id, ...doc.data() });
+    });
+
+    res.json(rewards);
+  } catch (error) {
+    logger.error("Error fetching rewards:", error);
+    res.status(500).json({ error: "Failed to fetch rewards" });
+  }
+});
+
+app.get("/userReward", async (req, res) => {
+  const userId = storage.getItem("userId") || "Ppj6w2GfgMb2JMNBC9Isq96XfVs2";
+  console.log(userId);
+  try {
+    const userRef = db.collection("users").doc(userId);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json({ userId: userDoc.id, reward: userDoc.data().rewards });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ error: "Failed to fetch user" });
+  }
+});
+
+app.post("/apply-reward", async (req, res) => {
+  const { reward, userId, dollar } = req.body;
+  console.log("Kojja mundaa kodakaaa",reward, userId, dollar);
+  
+  if (!reward || !userId) {
+    return res.status(400).json({ error: "Reward and userId are required" });
+  }
+
+  try {
+    const rewardRef = db.collection("rewards").doc("rewardDoc");
+    const rewardDoc = await rewardRef.get();
+
+    const userRef = db.collection("users").doc(userId);
+    const userDoc = await userRef.get();
+
+    if (!rewardDoc.exists) {
+      return res.status(404).json({ error: "Reward data not found kojja" });
+    }
+    if (reward !== userDoc.data().reward) {
+      return res.status(404).json({ error: "Reward data not found lanja" });
+    }
+    const rewardData = rewardDoc.data();
+    let dollarValue = 0; 
+    console.log("Kona lanja kodakaaa",rewardData.reward, dollarValue);
+    if (rewardData.reward === 1) {
+      dollarValue = 10 * rewardData.dollar;
+      console.log("Mutton munda",dollarValue);
+      
+      // res.status(200).json({ dollarValue: parseFloat(dollarValue.toFixed(2)) });
+    } else {
+      const localDollar = rewardData.dollar / rewardData.reward;
+      console.log(localDollar);
+      dollarValue = 10 * localDollar;
+      console.log("Mastaan munda",dollarValue);      
+      // res.status(200).json({ dollarValue: parseFloat(dollarValue.toFixed(2)) });
+    }
+    const totalPrice = dollar - (dollarValue);
+    console.log("Erri lanja",totalPrice, dollar, dollarValue);
+    
+    await userRef.update({ reward: (userDoc.data().reward - 10) });
+    dollarValue = null;
+    res.status(200).json({ totalPrice: parseFloat(totalPrice.toFixed(2)), reward: (userDoc.data().reward - 10) });
+  } catch (error) {
+    logger.error("Error estimating reward value:", error);
+    res.status(500).json({ error: "Failed to estimate reward value" });
+  }
+});
+
+const port = 3000;
 app.listen(port, () => {
   logger.info(`Server is running on port ${port}`);
 });
