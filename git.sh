@@ -1,3 +1,3 @@
-git add server.js git.sh
-git commit -m "More routes for the admin dashboard"
+git add .
+git commit -m "Everything" --date="2024-12-17 12:00:00"
 git push 
