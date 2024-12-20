@@ -1835,8 +1835,8 @@ app.get("/userReward", async (req, res) => {
 
 app.post("/apply-reward", async (req, res) => {
   const { reward, userId, dollar } = req.body;
-  console.log("Kojja mundaa kodakaaa",reward, userId, dollar);
-  
+  console.log("Kojja mundaa kodakaaa", reward, userId, dollar);
+
   if (!reward || !userId) {
     return res.status(400).json({ error: "Reward and userId are required" });
   }
@@ -1855,31 +1855,126 @@ app.post("/apply-reward", async (req, res) => {
       return res.status(404).json({ error: "Reward data not found lanja" });
     }
     const rewardData = rewardDoc.data();
-    let dollarValue = 0; 
-    console.log("Kona lanja kodakaaa",rewardData.reward, dollarValue);
+    let dollarValue = 0;
+    console.log("Kona lanja kodakaaa", rewardData.reward, dollarValue);
     if (rewardData.reward === 1) {
       dollarValue = 10 * rewardData.dollar;
-      console.log("Mutton munda",dollarValue);
-      
+      console.log("Mutton munda", dollarValue);
+
       // res.status(200).json({ dollarValue: parseFloat(dollarValue.toFixed(2)) });
     } else {
       const localDollar = rewardData.dollar / rewardData.reward;
       console.log(localDollar);
       dollarValue = 10 * localDollar;
-      console.log("Mastaan munda",dollarValue);      
+      console.log("Mastaan munda", dollarValue);
       // res.status(200).json({ dollarValue: parseFloat(dollarValue.toFixed(2)) });
     }
-    const totalPrice = dollar - (dollarValue);
-    console.log("Erri lanja",totalPrice, dollar, dollarValue);
-    
-    await userRef.update({ reward: (userDoc.data().reward - 10) });
+    const totalPrice = dollar - dollarValue;
+    console.log("Erri lanja", totalPrice, dollar, dollarValue);
+
+    await userRef.update({ reward: userDoc.data().reward - 10 });
     dollarValue = null;
-    res.status(200).json({ totalPrice: parseFloat(totalPrice.toFixed(2)), reward: (userDoc.data().reward - 10) });
+    res.status(200).json({
+      totalPrice: parseFloat(totalPrice.toFixed(2)),
+      reward: userDoc.data().reward - 10,
+    });
   } catch (error) {
     logger.error("Error estimating reward value:", error);
     res.status(500).json({ error: "Failed to estimate reward value" });
   }
 });
+
+app.post("/send-notification", async (req, res) => {
+  const { title, body } = req.body;
+
+  if (!title || !body) {
+    return res.status(400).json({ error: "Title and body are required" });
+  }
+
+  try {
+    // Fetch all tokens from your Firebase database
+    const tokensSnapshot = await admin
+      .firestore()
+      .collection("userTokens")
+      .get();
+    const tokens = tokensSnapshot.docs.map((doc) => doc.data().token);
+
+    if (tokens.length === 0) {
+      return res.status(404).json({ error: "No registered tokens found" });
+    }
+
+    // Create the notification message
+    const message = {
+      notification: {
+        title,
+        body,
+      },
+    };
+
+    // Send notifications to all tokens
+    const responses = await Promise.all(
+      tokens.map((token) =>
+        admin.messaging().send({
+          ...message,
+          token,
+        })
+      )
+    );
+
+    // Log successful responses
+    logger.info("Notifications sent successfully", responses);
+
+    // Add the notification to the notifications collection
+    await admin.firestore().collection("notifications").add({
+      title,
+      body,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    res
+      .status(200)
+      .json({ message: "Notifications sent successfully", responses });
+  } catch (error) {
+    logger.error("Error sending notifications:", error);
+    res.status(500).json({ error: "Failed to send notifications" });
+  }
+});
+
+app.get("/notifications", async (req, res) => {
+  try {
+    const notificationsSnapshot = await db
+      .collection("notifications")
+      .orderBy("timestamp", "desc")
+      .get();
+    const notifications = [];
+    notificationsSnapshot.forEach((doc) => {
+      notifications.push({ notificationId: doc.id, ...doc.data() });
+    });
+    res.json(notifications);
+  } catch (error) {
+    logger.error("Error fetching notifications:", error);
+    res.status(500).json({ error: "Failed to fetch notifications" });
+  }
+});
+
+
+app.post("/store-token", async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ error: "Token is required" });
+  }
+
+  try {
+    // Store the token in the userTokens collection
+    await db.collection("userTokens").add({ token });
+    res.status(201).json({ message: "Token stored successfully" });
+  } catch (error) {
+    logger.error("Error storing token:", error);
+    res.status(500).json({ error: "Failed to store token" });
+  }
+});
+
 
 const port = 3000;
 app.listen(port, () => {

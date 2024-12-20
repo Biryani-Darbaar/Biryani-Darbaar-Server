@@ -1,3 +1,3 @@
-git add .
-git commit -m "Everything" --date="2024-12-17 12:00:00"
+git add server.js git.sh
+git commit -m "Notification services" 
 git push 
