@@ -372,7 +372,7 @@ app.delete("/dishes/:category/:id", async (req, res) => {
     // If an image URL exists, delete the image from Firebase Storage
     if (imageUrl) {
       const fileName = imageUrl.split("/").pop();
-      const file = bucket.file(fileName);
+      const file = bucket.file(`${category}/${fileName}`);
       await file.delete();
     }
 
@@ -1976,7 +1976,7 @@ app.post("/store-token", async (req, res) => {
 });
 
 
-const port = 3000;
+const port = 4200;
 app.listen(port, () => {
   logger.info(`Server is running on port ${port}`);
 });
