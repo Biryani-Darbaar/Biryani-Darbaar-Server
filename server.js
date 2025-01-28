@@ -11,13 +11,14 @@ const session = require("express-session");
 const storage = require("node-sessionstorage");
 const firebase = require("firebase/app");
 const bodyParser = require("body-parser");
+const Pushy = require("pushy");
 const Stripe = require("stripe");
 const stripe = Stripe(
   "pk_live_51QI9zGP1mrjxuTnQnqhMuVG5AdSpjp4b50Vy8N51uOhErUBttIEVaq2c6yIl1lS8vpqsYWtVpefkY2SPkB9lwx1C004cMMf16E"
 );
 require("firebase/auth");
 //const nocache = require('nocache')
-
+const pushyAPI = new Pushy("72289ac20803a6e4e493d15a6839413d11f9b8eaa9dc5508a918fd168e7f9cb0");
 // Initialize Firebase Admin SDK
 const serviceAccount = require("./serviceAccountKey.json"); // Path to your Firebase service account key
 // const {
@@ -1892,7 +1893,7 @@ app.post("/send-notification", async (req, res) => {
   }
 
   try {
-    // Fetch all tokens from your Firebase database
+    // Fetch all device tokens from your Firestore database
     const tokensSnapshot = await admin
       .firestore()
       .collection("userTokens")
@@ -1903,39 +1904,52 @@ app.post("/send-notification", async (req, res) => {
       return res.status(404).json({ error: "No registered tokens found" });
     }
 
-    // Create the notification message
-    const message = {
+    // Set push payload data
+    const data = {
+      message: body, // Custom payload data
+    };
+
+    // Set optional notification options for Pushy
+    const options = {
       notification: {
+        badge: 1,
+        sound: "ping.aiff",
         title,
         body,
       },
     };
 
-    // Send notifications to all tokens
-    const responses = await Promise.all(
+    // Send push notification to all tokens using Pushy
+    const results = await Promise.all(
       tokens.map((token) =>
-        admin.messaging().send({
-          ...message,
-          token,
+        new Promise((resolve, reject) => {
+          pushyAPI.sendPushNotification(data, [token], options, (err, id) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve({ id, token });
+            }
+          });
         })
       )
     );
 
     // Log successful responses
-    logger.info("Notifications sent successfully", responses);
+    console.log("Notifications sent successfully", results);
 
-    // Add the notification to the notifications collection
+    // Add the notification to the Firestore "notifications" collection
     await admin.firestore().collection("notifications").add({
       title,
       body,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    res
-      .status(200)
-      .json({ message: "Notifications sent successfully", responses });
+    res.status(200).json({
+      message: "Notifications sent successfully",
+      results,
+    });
   } catch (error) {
-    logger.error("Error sending notifications:", error);
+    console.error("Error sending notifications:", error);
     res.status(500).json({ error: "Failed to send notifications" });
   }
 });
