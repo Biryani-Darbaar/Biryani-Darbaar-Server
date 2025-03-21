@@ -1,5 +1,4 @@
 const morgan = require("morgan");
-const logger = require("./logger"); // Import the logger
 const cacheController = require("express-cache-controller");
 
 const express = require("express");
@@ -13,12 +12,16 @@ const firebase = require("firebase/app");
 const bodyParser = require("body-parser");
 const Pushy = require("pushy");
 const Stripe = require("stripe");
+
 const stripe = Stripe(
   "pk_live_51QI9zGP1mrjxuTnQnqhMuVG5AdSpjp4b50Vy8N51uOhErUBttIEVaq2c6yIl1lS8vpqsYWtVpefkY2SPkB9lwx1C004cMMf16E"
 );
+
 require("firebase/auth");
 //const nocache = require('nocache')
-const pushyAPI = new Pushy("72289ac20803a6e4e493d15a6839413d11f9b8eaa9dc5508a918fd168e7f9cb0");
+const pushyAPI = new Pushy(
+  "72289ac20803a6e4e493d15a6839413d11f9b8eaa9dc5508a918fd168e7f9cb0"
+);
 // Initialize Firebase Admin SDK
 const serviceAccount = require("./serviceAccountKey.json"); // Path to your Firebase service account key
 // const {
@@ -31,7 +34,6 @@ admin.initializeApp({
 
 const db = admin.firestore();
 const bucket = getStorage().bucket();
-const onHeaders = require("on-headers");
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
@@ -41,7 +43,7 @@ app.set({ viewEngine: "ejs", cache: false });
 // Setup morgan for HTTP request logging
 app.use(
   morgan("combined", {
-    stream: { write: (message) => logger.info(message.trim()) },
+    stream: { write: (message) => console.info(message.trim()) },
   })
 );
 app.use((req, res, next) => {
@@ -66,6 +68,7 @@ app.use(cacheController({ debug: true }));
 //    this.removeHeader('ETag');
 // });
 //});
+
 // Route to upload images and store metadata in Firestore
 app.post("/dishes", upload.single("image"), async (req, res) => {
   const dishData = JSON.parse(req.body.dishData); // Parse the JSON data sent by the client
@@ -133,10 +136,11 @@ app.post("/dishes", upload.single("image"), async (req, res) => {
     });
   } catch (error) {
     // Handle errors
-    logger.error("Error uploading image or saving data:", error);
+    console.error("Error uploading image or saving data:", error);
     res.status(500).json({ error: "Failed to add dish" });
   }
 });
+
 // Route to fetch dishes from Firestore
 
 app.get("/dishes/category/:category", async (req, res) => {
@@ -200,7 +204,7 @@ app.get("/categories", async (req, res) => {
 
     res.json(categories);
   } catch (error) {
-    logger.error("Error fetching categories:", error);
+    console.error("Error fetching categories:", error);
     res.status(500).json({ error: "Failed to fetch categories" });
   }
 });
@@ -344,7 +348,7 @@ app.put("/dishes/:category/:id", upload.single("image"), async (req, res) => {
       imageUrl,
     });
   } catch (error) {
-    logger.error("Error updating dish:", error);
+    console.error("Error updating dish:", error);
     res.status(500).json({ error: "Failed to update dish" });
   }
 });
@@ -379,7 +383,7 @@ app.delete("/dishes/:category/:id", async (req, res) => {
 
     res.status(200).json({ message: "Dish deleted successfully" });
   } catch (error) {
-    logger.error("Error deleting dish:", error);
+    console.error("Error deleting dish:", error);
     res.status(500).json({ error: "Failed to delete dish" });
   }
 });
@@ -422,7 +426,7 @@ app.delete("/categories/:category", async (req, res) => {
       .status(200)
       .json({ message: "Category and associated dishes deleted successfully" });
   } catch (error) {
-    logger.error("Error deleting category:", error);
+    console.error("Error deleting category:", error);
     res.status(500).json({ error: "Failed to delete category" });
   }
 });
@@ -488,7 +492,7 @@ app.post("/orders", async (req, res) => {
       newRewardValue,
     });
   } catch (error) {
-    logger.error("Error placing order:", error);
+    console.error("Error placing order:", error);
     res.status(500).json({ error: error });
   }
 });
@@ -502,7 +506,7 @@ app.get("/orders", async (req, res) => {
     });
     res.json(orders);
   } catch (error) {
-    logger.error("Error fetching orders:", error);
+    console.error("Error fetching orders:", error);
     res.status(500).json({ error: "Failed to fetch orders" });
   }
 });
@@ -524,7 +528,7 @@ app.get("/ordersByUser/:id", async (req, res) => {
     });
     res.json(orders);
   } catch (error) {
-    logger.error("Error fetching orders:", error);
+    console.error("Error fetching orders:", error);
     res.status(500).json({ error: "Failed to fetch orders" });
   }
 });
@@ -548,7 +552,7 @@ app.get("/orders/:id", async (req, res) => {
     }
     res.json({ orderId: orderDoc.id, ...orderDoc.data() });
   } catch (error) {
-    logger.error("Error fetching order:", error);
+    console.error("Error fetching order:", error);
     res.status(500).json({ error: "Failed to fetch order" });
   }
 });
@@ -572,7 +576,7 @@ app.patch("/orders/:id", async (req, res) => {
     await orderRef.update({ orderStatus });
     res.status(200).send("Order status updated");
   } catch (error) {
-    logger.error("Error updating order status:", error);
+    console.error("Error updating order status:", error);
     res.status(500).send("Error updating order status");
   }
 });
@@ -680,7 +684,7 @@ app.get("/orders/total-count", async (req, res) => {
 
     res.status(200).json({ totalOrders: totalOrderCount });
   } catch (error) {
-    logger.error("Error counting total orders:", error);
+    console.error("Error counting total orders:", error);
     res.status(500).json({ error: "Failed to count total orders" });
   }
 });
@@ -719,7 +723,7 @@ app.post("/img", upload.array("images", 50), async (req, res) => {
       imageUrls,
     });
   } catch (error) {
-    logger.error("Error uploading images:", error);
+    console.error("Error uploading images:", error);
     res.status(500).json({ error: "Failed to upload images" });
   }
 });
@@ -733,7 +737,7 @@ app.get("/img", async (req, res) => {
     }));
     res.json(images);
   } catch (error) {
-    logger.error("Error fetching images:", error);
+    console.error("Error fetching images:", error);
     res.status(500).json({ error: "Failed to fetch images" });
   }
 });
@@ -752,7 +756,7 @@ app.delete("/img", async (req, res) => {
 
     res.status(200).json({ message: "All images deleted successfully" });
   } catch (error) {
-    logger.error("Error deleting images:", error);
+    console.error("Error deleting images:", error);
     res.status(500).json({ error: "Failed to delete images" });
   }
 });
@@ -794,7 +798,7 @@ app.post("/cart", async (req, res) => {
       cartItemId: cartRef.id,
     });
   } catch (error) {
-    logger.error("Error adding item to cart:", error);
+    console.error("Error adding item to cart:", error);
     res.status(500).json({ error: "Failed to add item to cart" });
   }
 });
@@ -820,7 +824,7 @@ app.post("/getCart", async (req, res) => {
 
     res.json(cartItems);
   } catch (error) {
-    logger.error("Error fetching cart items:", error);
+    console.error("Error fetching cart items:", error);
     res.status(500).json({ error: "Failed to fetch cart items" });
   }
 });
@@ -844,7 +848,7 @@ app.put("/cart/:id", async (req, res) => {
 
     res.status(200).json({ message: "Cart item updated successfully" });
   } catch (error) {
-    logger.error("Error updating cart item:", error);
+    console.error("Error updating cart item:", error);
     res.status(500).json({ error: "Failed to update cart item" });
   }
 });
@@ -865,7 +869,7 @@ app.delete("/cart/:id", async (req, res) => {
 
     res.status(200).json({ message: "Cart item deleted successfully" });
   } catch (error) {
-    logger.error("Error deleting cart item:", error);
+    console.error("Error deleting cart item:", error);
     res.status(500).json({ error: "Failed to delete cart item" });
   }
 });
@@ -886,7 +890,7 @@ app.patch("/ordersAdmin/:id", async (req, res) => {
     res.status(200).send("Order status updated");
   } catch (error) {
     console.log("Modda Gudu");
-    logger.error("Error updating order status:", error);
+    console.error("Error updating order status:", error);
     res.status(500).send("Error updating order status");
   }
 });
@@ -982,7 +986,7 @@ app.post("/locations", upload.single("image"), async (req, res) => {
       imageUrl,
     });
   } catch (error) {
-    logger.error("Error creating location:", error);
+    console.error("Error creating location:", error);
     res.status(500).json({ error: "Failed to create location" });
   }
 });
@@ -999,7 +1003,7 @@ app.get("/locations", async (req, res) => {
 
     res.json(locations);
   } catch (error) {
-    logger.error("Error fetching locations:", error);
+    console.error("Error fetching locations:", error);
     res.status(500).json({ error: "Failed to fetch locations" });
   }
 });
@@ -1055,7 +1059,7 @@ app.put("/locations/:id", upload.single("image"), async (req, res) => {
       imageUrl,
     });
   } catch (error) {
-    logger.error("Error updating location:", error);
+    console.error("Error updating location:", error);
     res.status(500).json({ error: "Failed to update location" });
   }
 });
@@ -1087,7 +1091,7 @@ app.delete("/locations/:id", async (req, res) => {
 
     res.status(200).json({ message: "Location deleted successfully" });
   } catch (error) {
-    logger.error("Error deleting location:", error);
+    console.error("Error deleting location:", error);
     res.status(500).json({ error: "Failed to delete location" });
   }
 });
@@ -1265,7 +1269,7 @@ app.post("/userImg", upload.single("image"), async (req, res) => {
       imageUrl,
     });
   } catch (error) {
-    logger.error("Error uploading image:", error);
+    console.error("Error uploading image:", error);
     res.status(500).json({ error: "Failed to upload image" });
   }
 });
@@ -1279,7 +1283,7 @@ const checkCollectionLimit = async (req, res, next) => {
     }
     next();
   } catch (error) {
-    logger.error("Error checking collection limit:", error);
+    console.error("Error checking collection limit:", error);
     res.status(500).json({ error: "Failed to check collection limit" });
   }
 };
@@ -1299,7 +1303,7 @@ app.post("/miniGames", checkCollectionLimit, async (req, res) => {
       .status(201)
       .json({ message: "Mini game created successfully", gameId: gameRef.id });
   } catch (error) {
-    logger.error("Error creating mini game:", error);
+    console.error("Error creating mini game:", error);
     res.status(500).json({ error: "Failed to create mini game" });
   }
 });
@@ -1314,7 +1318,7 @@ app.get("/miniGames", async (req, res) => {
     });
     res.json(games);
   } catch (error) {
-    logger.error("Error fetching mini games:", error);
+    console.error("Error fetching mini games:", error);
     res.status(500).json({ error: "Failed to fetch mini games" });
   }
 });
@@ -1333,7 +1337,7 @@ app.put("/miniGames/:id", async (req, res) => {
     await gameRef.update({ name, value, type });
     res.status(200).json({ message: "Mini game updated successfully" });
   } catch (error) {
-    logger.error("Error updating mini game:", error);
+    console.error("Error updating mini game:", error);
     res.status(500).json({ error: "Failed to update mini game" });
   }
 });
@@ -1347,7 +1351,7 @@ app.delete("/miniGames/:id", async (req, res) => {
     await gameRef.delete();
     res.status(200).json({ message: "Mini game deleted successfully" });
   } catch (error) {
-    logger.error("Error deleting mini game:", error);
+    console.error("Error deleting mini game:", error);
     res.status(500).json({ error: "Failed to delete mini game" });
   }
 });
@@ -1362,7 +1366,7 @@ app.put("/user/goldMember/:id", async (req, res) => {
       .status(200)
       .json({ message: "User updated to gold member successfully" });
   } catch (error) {
-    logger.error("Error updating user to gold member:", error);
+    console.error("Error updating user to gold member:", error);
     res.status(500).json({ error: "Failed to update user to gold member" });
   }
 });
@@ -1398,7 +1402,7 @@ app.put("/goldDiscountApply", async (req, res) => {
       .status(200)
       .json({ message: "Discount applied successfully to all dishes" });
   } catch (error) {
-    logger.error("Error applying discount:", error);
+    console.error("Error applying discount:", error);
     res.status(500).json({ error: "Failed to apply discount" });
   }
 });
@@ -1433,7 +1437,7 @@ app.put("/updateDishesGoldPrice", async (req, res) => {
     await Promise.all(updatePromises);
     res.status(200).json({ message: "Prices updated successfully" });
   } catch (error) {
-    logger.error("Error updating prices:", error);
+    console.error("Error updating prices:", error);
     res.status(500).json({ error: "Failed to update prices" });
   }
 });
@@ -1447,7 +1451,7 @@ app.get("/getUsers", async (req, res) => {
     });
     res.json(users);
   } catch (error) {
-    logger.error("Error fetching users:", error);
+    console.error("Error fetching users:", error);
     res.status(500).json({ error: "Failed to fetch users" });
   }
 });
@@ -1480,7 +1484,7 @@ app.get("/daily-summary", async (req, res) => {
     });
     res.json(dailySummary);
   } catch (error) {
-    logger.error("Error fetching daily summary:", error);
+    console.error("Error fetching daily summary:", error);
     res
       .status(500)
       .json({ error: "Failed to fetch daily summary", message: error.message });
@@ -1516,7 +1520,7 @@ app.put("/dishes/discount/:category/:id", async (req, res) => {
       .status(200)
       .json({ message: "Discount applied successfully", discount });
   } catch (error) {
-    logger.error("Error applying discount:", error);
+    console.error("Error applying discount:", error);
     res.status(500).json({ error: "Failed to apply discount" });
   }
 });
@@ -1556,7 +1560,7 @@ app.get("/specialOffers", async (req, res) => {
 
     res.json(specialOffers);
   } catch (error) {
-    logger.error("Error fetching special offers:", error);
+    console.error("Error fetching special offers:", error);
     res.status(500).json({ error: "Failed to fetch special offers" });
   }
 });
@@ -1582,7 +1586,7 @@ app.put("/order/status/:id", async (req, res) => {
     console.log("-------------gudda chekkuthaa", response);
     res.status(200).json({ message: "Dish status updated successfully" });
   } catch (error) {
-    logger.error("Error updating dish status:", error);
+    console.error("Error updating dish status:", error);
     res.status(500).json({ error: "Failed to update dish status" });
   }
 });
@@ -1601,7 +1605,7 @@ app.get("/dishes/admin/:category", async (req, res) => {
     });
     res.json(dishes);
   } catch (error) {
-    logger.error("Error fetching dishes:", error);
+    console.error("Error fetching dishes:", error);
     res.status(500).json({ error: "Failed to fetch dishes" });
   }
 });
@@ -1679,7 +1683,7 @@ app.patch(
         message: "Dish updated successfully",
       });
     } catch (error) {
-      logger.error("Error updating dish:", error);
+      console.error("Error updating dish:", error);
       res.status(500).json({ error: "Failed to update dish" });
     }
   }
@@ -1718,7 +1722,7 @@ app.post("/goldPrice", async (req, res) => {
     await Promise.all(updatePromises);
     res.status(201).json({ message: "Gold price updated successfully" });
   } catch (error) {
-    logger.error("Error updating gold price:", error);
+    console.error("Error updating gold price:", error);
     res.status(500).json({ error: "Failed to update gold price" });
   }
 });
@@ -1732,7 +1736,7 @@ app.get("/goldPrice", async (req, res) => {
     }
     res.json({ goldPrice: goldPriceDoc.data().goldPrice });
   } catch (error) {
-    logger.error("Error fetching gold price:", error);
+    console.error("Error fetching gold price:", error);
     res.status(500).json({ error: "Failed to fetch gold price" });
   }
 });
@@ -1767,7 +1771,7 @@ app.patch("/availability", async (req, res) => {
 
     res.status(200).json({ message: "Dish availability updated successfully" });
   } catch (error) {
-    logger.error("Error updating dish availability:", error);
+    console.error("Error updating dish availability:", error);
     res.status(500).json({ error: "Failed to update dish availability" });
   }
 });
@@ -1796,7 +1800,7 @@ app.post("/rewards", async (req, res) => {
       res.status(201).json({ message: "Reward created successfully" });
     }
   } catch (error) {
-    logger.error("Error creating or updating reward:", error);
+    console.error("Error creating or updating reward:", error);
     res.status(500).json({ error: "Failed to create or update reward" });
   }
 });
@@ -1813,7 +1817,7 @@ app.get("/rewards", async (req, res) => {
 
     res.json(rewards);
   } catch (error) {
-    logger.error("Error fetching rewards:", error);
+    console.error("Error fetching rewards:", error);
     res.status(500).json({ error: "Failed to fetch rewards" });
   }
 });
@@ -1880,7 +1884,7 @@ app.post("/apply-reward", async (req, res) => {
       reward: userDoc.data().reward - 10,
     });
   } catch (error) {
-    logger.error("Error estimating reward value:", error);
+    console.error("Error estimating reward value:", error);
     res.status(500).json({ error: "Failed to estimate reward value" });
   }
 });
@@ -1921,16 +1925,17 @@ app.post("/send-notification", async (req, res) => {
 
     // Send push notification to all tokens using Pushy
     const results = await Promise.all(
-      tokens.map((token) =>
-        new Promise((resolve, reject) => {
-          pushyAPI.sendPushNotification(data, [token], options, (err, id) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve({ id, token });
-            }
-          });
-        })
+      tokens.map(
+        (token) =>
+          new Promise((resolve, reject) => {
+            pushyAPI.sendPushNotification(data, [token], options, (err, id) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve({ id, token });
+              }
+            });
+          })
       )
     );
 
@@ -1966,11 +1971,10 @@ app.get("/notifications", async (req, res) => {
     });
     res.json(notifications);
   } catch (error) {
-    logger.error("Error fetching notifications:", error);
+    console.error("Error fetching notifications:", error);
     res.status(500).json({ error: "Failed to fetch notifications" });
   }
 });
-
 
 app.post("/store-token", async (req, res) => {
   const { token } = req.body;
@@ -1984,13 +1988,12 @@ app.post("/store-token", async (req, res) => {
     await db.collection("userTokens").add({ token });
     res.status(201).json({ message: "Token stored successfully" });
   } catch (error) {
-    logger.error("Error storing token:", error);
+    console.error("Error storing token:", error);
     res.status(500).json({ error: "Failed to store token" });
   }
 });
 
-
 const port = 4200;
 app.listen(port, () => {
-  logger.info(`Server is running on port ${port}`);
+  console.info(`Server is running on port ${port}`);
 });
