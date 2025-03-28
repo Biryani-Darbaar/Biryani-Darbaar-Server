@@ -1,68 +1,51 @@
-const db = require('../config/database');
-const { checkCollectionLimit } = require('../middleware/checkCollectionLimit');
+const { db } = require("../config/firebase");
 
 // Create a new mini game
-exports.createMiniGame = async (req, res) => {
-  const { name, value, type } = req.body;
-
-  if (!name || !value) {
-    return res.status(400).json({ error: "Name and value are required" });
-  }
-
+exports.createGame = async (req, res) => {
   try {
-    const gameRef = db.collection("miniGames").doc();
-    await gameRef.set({ name, value, type });
-    res.status(201).json({ message: "Mini game created successfully", gameId: gameRef.id });
+    const gameData = req.body;
+    const docRef = await db.collection("miniGames").add({
+      ...gameData,
+      createdAt: new Date(),
+    });
+    res.status(201).json({ id: docRef.id, ...gameData });
   } catch (error) {
-    console.error("Error creating mini game:", error);
-    res.status(500).json({ error: "Failed to create mini game" });
+    res.status(500).json({ error: error.message });
   }
 };
 
 // Get all mini games
-exports.getAllMiniGames = async (req, res) => {
+exports.getAllGames = async (req, res) => {
   try {
     const gamesSnapshot = await db.collection("miniGames").get();
     const games = [];
     gamesSnapshot.forEach((doc) => {
-      games.push({ gameId: doc.id, ...doc.data() });
+      games.push({ id: doc.id, ...doc.data() });
     });
-    res.json(games);
+    res.status(200).json(games);
   } catch (error) {
-    console.error("Error fetching mini games:", error);
-    res.status(500).json({ error: "Failed to fetch mini games" });
+    res.status(500).json({ error: error.message });
   }
 };
 
 // Update a mini game by ID
-exports.updateMiniGame = async (req, res) => {
-  const gameId = req.params.id;
-  const { name, value, type } = req.body;
-
-  if (!name || !value || !type) {
-    return res.status(400).json({ error: "Name, value, and type are required" });
-  }
-
+exports.updateGame = async (req, res) => {
   try {
-    const gameRef = db.collection("miniGames").doc(gameId);
-    await gameRef.update({ name, value, type });
-    res.status(200).json({ message: "Mini game updated successfully" });
+    const { id } = req.params;
+    await db.collection("miniGames").doc(id).update(req.body);
+    res.status(200).json({ message: "Game updated successfully" });
   } catch (error) {
-    console.error("Error updating mini game:", error);
-    res.status(500).json({ error: "Failed to update mini game" });
+    res.status(500).json({ error: error.message });
   }
 };
 
 // Delete a mini game by ID
-exports.deleteMiniGame = async (req, res) => {
-  const gameId = req.params.id;
-
+exports.deleteGame = async (req, res) => {
   try {
-    const gameRef = db.collection("miniGames").doc(gameId);
-    await gameRef.delete();
-    res.status(200).json({ message: "Mini game deleted successfully" });
+    const { id } = req.params;
+    await db.collection("miniGames").doc(id).delete();
+    res.status(200).json({ message: "Game deleted successfully" });
   } catch (error) {
-    console.error("Error deleting mini game:", error);
-    res.status(500).json({ error: "Failed to delete mini game" });
+    res.status(500).json({ error: error.message });
   }
 };

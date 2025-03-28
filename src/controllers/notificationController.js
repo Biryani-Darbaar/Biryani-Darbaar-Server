@@ -1,69 +1,48 @@
 // filepath: /biriyani-darbar-server/biriyani-darbar-server/src/controllers/notificationController.js
 
-const admin = require('../config/firebase');
-const db = require('../config/database');
+const { db } = require("../config/firebase");
+const Pushy = require("pushy");
+const pushyAPI = new Pushy(process.env.PUSHY_API_KEY);
 
-// Function to send notifications
-const sendNotification = async (req, res) => {
-    const { title, body } = req.body;
+exports.sendNotification = async (req, res) => {
+  try {
+    const { title, message, tokens } = req.body;
+    const data = { title, message };
 
-    if (!title || !body) {
-        return res.status(400).json({ error: "Title and body are required" });
-    }
+    const result = await new Promise((resolve, reject) => {
+      pushyAPI.sendPushNotification(data, tokens, {}, (err, id) => {
+        if (err) reject(err);
+        else resolve(id);
+      });
+    });
 
-    try {
-        const tokensSnapshot = await db.collection("userTokens").get();
-        const tokens = tokensSnapshot.docs.map((doc) => doc.data().token);
+    await db.collection("notifications").add({
+      title,
+      message,
+      sentAt: new Date(),
+      recipients: tokens,
+    });
 
-        if (tokens.length === 0) {
-            return res.status(404).json({ error: "No registered tokens found" });
-        }
-
-        const data = { message: body };
-        const options = {
-            notification: {
-                badge: 1,
-                sound: "ping.aiff",
-                title,
-                body,
-            },
-        };
-
-        const results = await Promise.all(
-            tokens.map((token) =>
-                admin.messaging().sendToDevice(token, data, options)
-            )
-        );
-
-        await db.collection("notifications").add({
-            title,
-            body,
-            timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        });
-
-        res.status(200).json({ message: "Notifications sent successfully", results });
-    } catch (error) {
-        console.error("Error sending notifications:", error);
-        res.status(500).json({ error: "Failed to send notifications" });
-    }
+    res.status(200).json({ success: true, pushId: result });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
-// Function to get notifications
-const getNotifications = async (req, res) => {
-    try {
-        const notificationsSnapshot = await db.collection("notifications").orderBy("timestamp", "desc").get();
-        const notifications = [];
-        notificationsSnapshot.forEach((doc) => {
-            notifications.push({ notificationId: doc.id, ...doc.data() });
-        });
-        res.json(notifications);
-    } catch (error) {
-        console.error("Error fetching notifications:", error);
-        res.status(500).json({ error: "Failed to fetch notifications" });
-    }
-};
+exports.getNotifications = async (req, res) => {
+  try {
+    const notificationsSnapshot = await db
+      .collection("notifications")
+      .orderBy("sentAt", "desc")
+      .get();
 
-module.exports = {
-    sendNotification,
-    getNotifications,
+    const notifications = [];
+    notificationsSnapshot.forEach((doc) => {
+      notifications.push({ id: doc.id, ...doc.data() });
+    });
+
+    res.status(200).json(notifications);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };

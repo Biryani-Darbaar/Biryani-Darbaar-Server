@@ -1,11 +1,5 @@
-const admin = require('firebase-admin');
-const serviceAccount = require('../config/firebase'); // Adjust the path as necessary
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-
-const db = admin.firestore();
+const admin = require("firebase-admin");
+const { admin, db } = require("../config/firebase");
 
 const createUser = async (userData) => {
   const userRecord = await admin.auth().createUser(userData);
@@ -37,5 +31,5 @@ module.exports = {
   updateUser,
   deleteUser,
   getAllUsers,
-  db
+  db,
 };

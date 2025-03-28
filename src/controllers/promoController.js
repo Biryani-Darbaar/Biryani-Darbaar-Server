@@ -1,70 +1,54 @@
-const db = require('../config/database');
+const { db } = require("../config/firebase");
 
-// Create a new promo code
 exports.createPromo = async (req, res) => {
-    const { code, discount, expirationDate } = req.body;
+  try {
+    const promoData = {
+      ...req.body,
+      createdAt: new Date(),
+      isActive: true,
+    };
 
-    if (!code || !discount || !expirationDate) {
-        return res.status(400).json({ error: "Code, discount, and expiration date are required" });
-    }
-
-    try {
-        const promoRef = db.collection("promoCodes").doc(code);
-        const doc = await promoRef.get();
-
-        if (doc.exists) {
-            return res.status(400).json({ error: "Promo code already exists" });
-        }
-
-        await promoRef.set({
-            discount: discount / 100,
-            expirationDate: new Date(expirationDate),
-        });
-        res.status(201).json({ message: "Promo code created successfully" });
-    } catch (error) {
-        console.error("Error creating promo code:", error);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
+    const docRef = await db.collection("promos").add(promoData);
+    res.status(201).json({ id: docRef.id, ...promoData });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
-// Validate a promo code
-exports.validatePromo = async (req, res) => {
-    const { promoCode } = req.body;
+exports.getPromos = async (req, res) => {
+  try {
+    const promosSnapshot = await db
+      .collection("promos")
+      .where("isActive", "==", true)
+      .get();
 
-    try {
-        const promoRef = db.collection("promoCodes").doc(promoCode);
-        const doc = await promoRef.get();
+    const promos = [];
+    promosSnapshot.forEach((doc) => {
+      promos.push({ id: doc.id, ...doc.data() });
+    });
 
-        if (!doc.exists) {
-            return res.status(404).json({ error: "Promo code not found" });
-        }
-
-        const promo = doc.data();
-        const currentDate = new Date();
-        if (currentDate > promo.expirationDate.toDate()) {
-            return res.status(400).json({ error: "Promo code has expired" });
-        }
-
-        res.json({ success: true, finalDiscount: promo.discount });
-    } catch (error) {
-        console.error("Error validating promo code:", error);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
+    res.status(200).json(promos);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
-// Get all promo codes
-exports.getAllPromos = async (req, res) => {
-    try {
-        const promoSnapshot = await db.collection("promoCodes").get();
-        const promoCodes = [];
+exports.updatePromo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.collection("promos").doc(id).update(req.body);
+    res.status(200).json({ message: "Promo updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
-        promoSnapshot.forEach((doc) => {
-            promoCodes.push({ promoCode: doc.id, ...doc.data() });
-        });
-
-        res.json(promoCodes);
-    } catch (error) {
-        console.error("Error fetching promo codes:", error);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
+exports.deletePromo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.collection("promos").doc(id).delete();
+    res.status(200).json({ message: "Promo deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };

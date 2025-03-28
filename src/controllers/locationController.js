@@ -1,68 +1,49 @@
-const db = require('../config/database');
+const { db } = require("../config/firebase");
 
-// Create a new location
-exports.createLocation = async (req, res) => {
-    const { name, address } = req.body;
-
-    if (!name || !address) {
-        return res.status(400).json({ error: "Name and address are required" });
-    }
-
-    try {
-        const newLocation = await db.collection('locations').add({ name, address });
-        res.status(201).json({ message: "Location created successfully", locationId: newLocation.id });
-    } catch (error) {
-        console.error("Error creating location:", error);
-        res.status(500).json({ error: "Failed to create location" });
-    }
+exports.addLocation = async (req, res) => {
+  try {
+    const locationData = req.body;
+    const docRef = await db.collection("locations").add({
+      ...locationData,
+      createdAt: new Date(),
+    });
+    res.status(201).json({ id: docRef.id, ...locationData });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
-// Get all locations
-exports.getAllLocations = async (req, res) => {
-    try {
-        const locationsSnapshot = await db.collection('locations').get();
-        const locations = [];
-        locationsSnapshot.forEach(doc => {
-            locations.push({ locationId: doc.id, ...doc.data() });
-        });
-        res.json(locations);
-    } catch (error) {
-        console.error("Error fetching locations:", error);
-        res.status(500).json({ error: "Failed to fetch locations" });
-    }
+exports.getLocations = async (req, res) => {
+  try {
+    const locationsSnapshot = await db.collection("locations").get();
+    const locations = [];
+    locationsSnapshot.forEach((doc) => {
+      {
+        locations.push({ id: doc.id, ...doc.data() });
+      }
+    });
+    res.status(200).json(locations);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
-// Update a location by ID
 exports.updateLocation = async (req, res) => {
+  try {
     const { id } = req.params;
-    const { name, address } = req.body;
-
-    try {
-        const locationRef = db.collection('locations').doc(id);
-        const locationDoc = await locationRef.get();
-
-        if (!locationDoc.exists) {
-            return res.status(404).json({ error: "Location not found" });
-        }
-
-        await locationRef.update({ name, address });
-        res.status(200).json({ message: "Location updated successfully" });
-    } catch (error) {
-        console.error("Error updating location:", error);
-        res.status(500).json({ error: "Failed to update location" });
-    }
+    await db.collection("locations").doc(id).update(req.body);
+    res.status(200).json({ message: "Location updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
-// Delete a location by ID
 exports.deleteLocation = async (req, res) => {
+  try {
     const { id } = req.params;
-
-    try {
-        const locationRef = db.collection('locations').doc(id);
-        await locationRef.delete();
-        res.status(200).json({ message: "Location deleted successfully" });
-    } catch (error) {
-        console.error("Error deleting location:", error);
-        res.status(500).json({ error: "Failed to delete location" });
-    }
+    await db.collection("locations").doc(id).delete();
+    res.status(200).json({ message: "Location deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };

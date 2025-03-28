@@ -1,73 +1,86 @@
 // filepath: /biriyani-darbar-server/biriyani-darbar-server/src/controllers/userController.js
 
-const admin = require('../config/firebase');
-const db = require('../config/database');
+const { db } = require("../config/firebase");
+const admin = require("firebase-admin");
 
-// User registration
-exports.registerUser = async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        const userRecord = await admin.auth().createUser({
-            email,
-            password,
-        });
-        res.status(201).json({ uid: userRecord.uid, email: userRecord.email });
-    } catch (error) {
-        console.error("Error registering user:", error);
-        res.status(500).json({ error: "Failed to register user" });
-    }
+exports.createUser = async (req, res) => {
+  try {
+    const { email, password, displayName, phoneNumber } = req.body;
+
+    const userRecord = await admin.auth().createUser({
+      email,
+      password,
+      displayName,
+      phoneNumber,
+    });
+
+    const userData = {
+      email,
+      displayName,
+      phoneNumber,
+      createdAt: new Date(),
+      points: 0,
+    };
+
+    await db.collection("users").doc(userRecord.uid).set(userData);
+    res.status(201).json({ uid: userRecord.uid, ...userData });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
-// User login
-exports.loginUser = async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        const userCredential = await admin.auth().signInWithEmailAndPassword(email, password);
-        const idToken = await userCredential.user.getIdToken();
-        res.status(200).json({ token: idToken });
-    } catch (error) {
-        console.error("Error logging in user:", error);
-        res.status(401).json({ error: "Invalid credentials" });
+exports.getUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doc = await db.collection("users").doc(id).get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: "User not found" });
     }
+
+    res.status(200).json({ id: doc.id, ...doc.data() });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
-// Get user profile
-exports.getUserProfile = async (req, res) => {
-    const userId = req.params.id;
-    try {
-        const userDoc = await db.collection('users').doc(userId).get();
-        if (!userDoc.exists) {
-            return res.status(404).json({ error: "User not found" });
-        }
-        res.status(200).json({ userId: userDoc.id, ...userDoc.data() });
-    } catch (error) {
-        console.error("Error fetching user profile:", error);
-        res.status(500).json({ error: "Failed to fetch user profile" });
-    }
+exports.updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    await db.collection("users").doc(id).update(updates);
+    res.status(200).json({ message: "User updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
-// Update user profile
-exports.updateUserProfile = async (req, res) => {
-    const userId = req.params.id;
-    const updatedData = req.body;
-    try {
-        await db.collection('users').doc(userId).update(updatedData);
-        res.status(200).json({ message: "User profile updated successfully" });
-    } catch (error) {
-        console.error("Error updating user profile:", error);
-        res.status(500).json({ error: "Failed to update user profile" });
-    }
+exports.updateUserPoints = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { points } = req.body;
+
+    await db
+      .collection("users")
+      .doc(id)
+      .update({
+        points: admin.firestore.FieldValue.increment(points),
+      });
+
+    res.status(200).json({ message: "Points updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
-// Delete user account
-exports.deleteUserAccount = async (req, res) => {
-    const userId = req.params.id;
-    try {
-        await admin.auth().deleteUser(userId);
-        await db.collection('users').doc(userId).delete();
-        res.status(200).json({ message: "User account deleted successfully" });
-    } catch (error) {
-        console.error("Error deleting user account:", error);
-        res.status(500).json({ error: "Failed to delete user account" });
-    }
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await admin.auth().deleteUser(id);
+    await db.collection("users").doc(id).delete();
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };

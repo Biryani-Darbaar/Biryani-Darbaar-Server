@@ -1,73 +1,60 @@
-const db = require('../config/database');
+const { db } = require("../config/firebase");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
-// Create a new order
 exports.createOrder = async (req, res) => {
-  const orderData = req.body;
-
   try {
-    const orderRef = await db.collection('orders').add(orderData);
-    res.status(201).json({ id: orderRef.id, ...orderData });
+    const { userId, items, total, paymentMethod } = req.body;
+
+    const payment = await stripe.paymentIntents.create({
+      amount: total * 100, // Convert to cents
+      currency: "inr",
+      payment_method: paymentMethod,
+      confirm: true,
+    });
+
+    const orderData = {
+      userId,
+      items,
+      total,
+      status: "pending",
+      paymentId: payment.id,
+      createdAt: new Date(),
+    };
+
+    const docRef = await db.collection("orders").add(orderData);
+    res.status(201).json({ id: docRef.id, ...orderData });
   } catch (error) {
-    console.error("Error creating order:", error);
-    res.status(500).json({ error: "Failed to create order" });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// Get all orders
-exports.getAllOrders = async (req, res) => {
+exports.getOrders = async (req, res) => {
   try {
-    const ordersSnapshot = await db.collection('orders').get();
+    const { userId } = req.query;
+    const ordersQuery = userId
+      ? db.collection("orders").where("userId", "==", userId)
+      : db.collection("orders");
+
+    const ordersSnapshot = await ordersQuery.orderBy("createdAt", "desc").get();
     const orders = [];
-    ordersSnapshot.forEach(doc => {
+    ordersSnapshot.forEach((doc) => {
       orders.push({ id: doc.id, ...doc.data() });
     });
-    res.json(orders);
+
+    res.status(200).json(orders);
   } catch (error) {
-    console.error("Error fetching orders:", error);
-    res.status(500).json({ error: "Failed to fetch orders" });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// Get order by ID
-exports.getOrderById = async (req, res) => {
-  const { id } = req.params;
-
+exports.updateOrderStatus = async (req, res) => {
   try {
-    const orderDoc = await db.collection('orders').doc(id).get();
-    if (!orderDoc.exists) {
-      return res.status(404).json({ error: "Order not found" });
-    }
-    res.json({ id: orderDoc.id, ...orderDoc.data() });
+    const { id } = req.params;
+    const { status } = req.body;
+
+    await db.collection("orders").doc(id).update({ status });
+    res.status(200).json({ message: "Order status updated successfully" });
   } catch (error) {
-    console.error("Error fetching order:", error);
-    res.status(500).json({ error: "Failed to fetch order" });
-  }
-};
-
-// Update an order
-exports.updateOrder = async (req, res) => {
-  const { id } = req.params;
-  const updatedData = req.body;
-
-  try {
-    const orderRef = db.collection('orders').doc(id);
-    await orderRef.update(updatedData);
-    res.status(200).json({ message: "Order updated successfully" });
-  } catch (error) {
-    console.error("Error updating order:", error);
-    res.status(500).json({ error: "Failed to update order" });
-  }
-};
-
-// Delete an order
-exports.deleteOrder = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    await db.collection('orders').doc(id).delete();
-    res.status(200).json({ message: "Order deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting order:", error);
-    res.status(500).json({ error: "Failed to delete order" });
+    res.status(500).json({ error: error.message });
   }
 };

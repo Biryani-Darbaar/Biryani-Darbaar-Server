@@ -1,22 +1,11 @@
-// filepath: biriyani-darbar-server/src/routes/userRoutes.js
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const userController = require('../controllers/userController');
-const authMiddleware = require('../middleware/auth');
+const userController = require("../controllers/userController");
 
-// User registration route
-router.post('/register', userController.registerUser);
-
-// User login route
-router.post('/login', userController.loginUser);
-
-// Get user profile route
-router.get('/:id', authMiddleware.verifyToken, userController.getUserProfile);
-
-// Update user profile route
-router.put('/:id', authMiddleware.verifyToken, userController.updateUserProfile);
-
-// Delete user account route
-router.delete('/:id', authMiddleware.verifyToken, userController.deleteUserAccount);
+router.post("/", userController.createUser);
+router.get("/:id", userController.getUser);
+router.put("/:id", userController.updateUser);
+router.put("/:id/points", userController.updateUserPoints);
+router.delete("/:id", userController.deleteUser);
 
 module.exports = router;
