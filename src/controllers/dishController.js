@@ -1,18 +1,58 @@
 // src/controllers/dishController.js
 
-const { db } = require("../config/firebase"); // Import the database configuration
+const { db, bucket } = require("../config/firebase"); // Import the database configuration
 
 // Function to create a new dish
 exports.createDish = async (req, res) => {
   try {
-    const dishData = req.body;
-    const docRef = await db.collection("dishes").add({
-      ...dishData,
-      createdAt: new Date(),
-    });
-    res.status(201).json({ id: docRef.id, ...dishData });
+    const dishData = JSON.parse(req.body.dishData);
+    const file = req.file;
+    const category = dishData.category;
+    let imageUrl = "";
+
+    if (file) {
+      const fileName = `${category}/${Date.now()}_${file.originalname}`;
+      const fileUpload = bucket.file(fileName);
+
+      const stream = fileUpload.createWriteStream({
+        metadata: {
+          contentType: file.mimetype,
+        },
+      });
+
+      stream.on("error", (error) => {
+        throw new Error("File upload failed");
+      });
+
+      stream.on("finish", async () => {
+        imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+        const newDishRef = await db.collection("dishes").add({
+          ...dishData,
+          imageUrl,
+          createdAt: new Date(),
+        });
+
+        res.status(201).json({
+          message: "Dish added successfully",
+          dishId: newDishRef.id,
+          imageUrl,
+        });
+      });
+
+      stream.end(file.buffer);
+    } else {
+      const newDishRef = await db.collection("dishes").add({
+        ...dishData,
+        createdAt: new Date(),
+      });
+
+      res.status(201).json({
+        message: "Dish added successfully",
+        dishId: newDishRef.id,
+      });
+    }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Failed to add dish" });
   }
 };
 
