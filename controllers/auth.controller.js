@@ -34,6 +34,21 @@ const isValidPassword = (password) => {
 };
 
 /**
+ * Validate phone number format
+ */
+const isValidPhoneNumber = (phoneNumber) => {
+  // Remove all non-digit characters
+  const cleaned = phoneNumber.replace(/\D/g, "");
+
+  // Check if it's a valid length (10-15 digits)
+  if (cleaned.length < 10 || cleaned.length > 15) {
+    return false;
+  }
+
+  return true;
+};
+
+/**
  * Register a new user with email and password
  */
 const register = asyncHandler(async (req, res) => {
@@ -57,10 +72,10 @@ const register = asyncHandler(async (req, res) => {
         "Password must be at least 8 characters with uppercase, lowercase, and number",
     });
   }
-  if (!phoneNumber || phoneNumber.trim().length < 10) {
+  if (!phoneNumber || !isValidPhoneNumber(phoneNumber)) {
     errors.push({
       field: "phoneNumber",
-      message: "Valid phone number is required",
+      message: "Valid phone number is required (10-15 digits)",
     });
   }
 
@@ -97,6 +112,7 @@ const register = asyncHandler(async (req, res) => {
     email: email.toLowerCase(),
     phoneNumber,
     hashedPassword, // Store hashed password for additional security layer
+    role: "user", // Default role for new users
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     emailVerified: false,

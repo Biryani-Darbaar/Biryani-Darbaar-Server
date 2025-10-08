@@ -5,6 +5,7 @@ const {
   authenticateJWT,
   authenticateFirebase,
   optionalAuthenticate,
+  requireAdmin,
 } = require("./authMiddlewares");
 
 morgan.token("statusColor", function (req, res) {
@@ -57,4 +58,8 @@ module.exports = {
   consoleLogger,
   cacheMiddleware,
   checkCollectionLimit,
+  authenticateJWT,
+  authenticateFirebase,
+  optionalAuthenticate,
+  requireAdmin,
 };

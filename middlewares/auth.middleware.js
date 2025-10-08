@@ -92,8 +92,44 @@ const optionalAuthenticate = async (req, res, next) => {
   }
 };
 
+/**
+ * Middleware to require admin role
+ */
+const requireAdmin = async (req, res, next) => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      throw new AuthenticationError("Authentication required");
+    }
+
+    const { db } = require("../config/firebase.config");
+    const { COLLECTION_NAMES } = require("../constants");
+
+    const userDoc = await db
+      .collection(COLLECTION_NAMES.USERS)
+      .doc(userId)
+      .get();
+
+    if (!userDoc.exists) {
+      throw new AuthenticationError("User not found");
+    }
+
+    const userData = userDoc.data();
+
+    if (userData.role !== "admin") {
+      throw new AuthenticationError("Admin access required");
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   authenticateJWT,
   authenticateFirebase,
   optionalAuthenticate,
+  requireAdmin,
 };
