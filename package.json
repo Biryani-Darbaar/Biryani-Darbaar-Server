@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js",
+    "dev": "cross-env NODE_ENV=development nodemon index.js",
+    "qa": "cross-env NODE_ENV=qa node index.js",
+    "prod": "cross-env NODE_ENV=production node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Sarthak S Kumar",
@@ -31,6 +33,7 @@
     "stripe": "^12.14.0"
   },
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "nodemon": "^3.0.1"
   }
 }
