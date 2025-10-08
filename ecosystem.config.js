@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "biryani-darbar-qa-server",
+      name: "biryani-darbaar-server",
       script: "index.js",
       instances: 1,
       exec_mode: "cluster",
