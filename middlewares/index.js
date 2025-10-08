@@ -1,6 +1,7 @@
 const morgan = require("morgan");
 const chalk = require("chalk");
-const { COLLECTION_NAMES, MAX_MINI_GAMES } = require("../constants");
+const { COLLECTION_NAMES } = require("../constants");
+const { app } = require("../config");
 const {
   authenticateJWT,
   authenticateFirebase,
@@ -44,7 +45,7 @@ const checkCollectionLimit = async (req, res, next) => {
     const gamesSnapshot = await db
       .collection(COLLECTION_NAMES.MINI_GAMES)
       .get();
-    if (gamesSnapshot.size >= MAX_MINI_GAMES) {
+    if (gamesSnapshot.size >= app.features.maxMiniGames) {
       return res.status(400).json({ error: "Collection limit reached" });
     }
     next();

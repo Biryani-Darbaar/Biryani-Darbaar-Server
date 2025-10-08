@@ -20,7 +20,55 @@ const successResponse = (res, statusCode, data, message = null) => {
 /**
  * Error response handler
  */
-const errorResponse = (res, error) => {
+const errorResponse = (
+  res,
+  statusCodeOrError,
+  message = null,
+  error = null
+) => {
+  // New signature: errorResponse(res, error)
+  if (
+    typeof statusCodeOrError === "object" &&
+    statusCodeOrError instanceof Error
+  ) {
+    const err = statusCodeOrError;
+    return handleErrorResponse(res, err);
+  }
+
+  // Old signature: errorResponse(res, statusCode, message, error)
+  // Convert to AppError and handle
+  const statusCode = statusCodeOrError;
+  const actualError = error || new Error(message);
+
+  // Create appropriate AppError based on status code
+  let appError;
+  if (statusCode === 400) {
+    appError = new (require("./errors.util").ValidationError)(message);
+  } else if (statusCode === 401) {
+    appError = new (require("./errors.util").AuthenticationError)(message);
+  } else if (statusCode === 404) {
+    appError = new (require("./errors.util").NotFoundError)(message);
+  } else if (statusCode === 409) {
+    appError = new (require("./errors.util").ConflictError)(message);
+  } else {
+    appError = new AppError(message, statusCode, "INTERNAL_SERVER_ERROR");
+  }
+
+  // Log the original error if provided
+  if (error) {
+    console.error(`[Error Context]`, {
+      originalError: error.message,
+      stack: error.stack,
+    });
+  }
+
+  return handleErrorResponse(res, appError);
+};
+
+/**
+ * Internal error handler
+ */
+const handleErrorResponse = (res, error) => {
   // Handle AppError instances
   if (error instanceof AppError) {
     const response = {
@@ -52,7 +100,11 @@ const errorResponse = (res, error) => {
   }
 
   // Handle Firebase errors
-  if (error.code && error.code.startsWith("auth/")) {
+  if (
+    error.code &&
+    typeof error.code === "string" &&
+    error.code.startsWith("auth/")
+  ) {
     const firebaseErrors = {
       "auth/email-already-exists": {
         message: "Email address is already in use",
@@ -96,6 +148,37 @@ const errorResponse = (res, error) => {
       statusCode: errorInfo.statusCode,
       errorCode: "FIREBASE_ERROR",
       message: errorInfo.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // Handle Firebase/gRPC UNAUTHENTICATED errors
+  if (error.message && error.message.includes("UNAUTHENTICATED")) {
+    console.error("[Firebase Auth Error] Invalid service account credentials");
+    return res.status(500).json({
+      success: false,
+      statusCode: 500,
+      errorCode: "FIREBASE_AUTH_ERROR",
+      message:
+        "Firebase authentication failed. Please check service account credentials.",
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // Handle numeric gRPC error codes
+  if (typeof error.code === "number") {
+    const grpcErrors = {
+      16: "Firebase authentication failed - Invalid credentials",
+    };
+
+    const message = grpcErrors[error.code] || error.message;
+    console.error(`[gRPC Error] Code ${error.code}: ${message}`);
+
+    return res.status(500).json({
+      success: false,
+      statusCode: 500,
+      errorCode: "FIREBASE_ERROR",
+      message: "Database connection error. Please contact support.",
       timestamp: new Date().toISOString(),
     });
   }

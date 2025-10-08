@@ -43,20 +43,7 @@ app.use(consoleLogger);
 app.use(cacheMiddleware);
 
 // Session management
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "secret",
-    resave: false,
-    saveUninitialized: false, // Changed to false for better security
-    cookie: {
-      secure: process.env.NODE_ENV === "production", // HTTPS only in production
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: "strict",
-    },
-    name: "sessionId", // Custom name instead of default
-  })
-);
+app.use(session(require("./config").session));
 
 // Cache controller
 app.use(cacheController({ noCache: true }));

@@ -1,7 +1,11 @@
 const { db } = require("../config/firebase.config");
 const { COLLECTION_NAMES } = require("../constants");
 const { uploadFile, deleteFile } = require("../utils/storage.util");
-const { successResponse, asyncHandler } = require("../utils/response.util");
+const {
+  successResponse,
+  errorResponse,
+  asyncHandler,
+} = require("../utils/response.util");
 const { ValidationError, NotFoundError } = require("../utils/errors.util");
 const { getUserId } = require("../utils/session.util");
 

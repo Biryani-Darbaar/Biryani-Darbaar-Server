@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { AuthenticationError } = require("./errors.util");
+const { jwt: jwtConfig } = require("../config");
 
 /**
  * Generate access token
@@ -11,9 +12,9 @@ const generateAccessToken = (userId, email) => {
     type: "access",
   };
 
-  return jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
-    issuer: "biryani-darbar-api",
+  return jwt.sign(payload, jwtConfig.access.secret, {
+    expiresIn: jwtConfig.access.expiresIn,
+    ...jwtConfig.options,
   });
 };
 
@@ -26,9 +27,9 @@ const generateRefreshToken = (userId) => {
     type: "refresh",
   };
 
-  return jwt.sign(payload, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "30d",
-    issuer: "biryani-darbar-api",
+  return jwt.sign(payload, jwtConfig.refresh.secret, {
+    expiresIn: jwtConfig.refresh.expiresIn,
+    ...jwtConfig.options,
   });
 };
 
@@ -39,7 +40,7 @@ const generateTokens = (userId, email) => {
   return {
     accessToken: generateAccessToken(userId, email),
     refreshToken: generateRefreshToken(userId),
-    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+    expiresIn: jwtConfig.access.expiresIn,
   };
 };
 
@@ -48,7 +49,7 @@ const generateTokens = (userId, email) => {
  */
 const verifyAccessToken = (token) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, jwtConfig.access.secret);
 
     if (decoded.type !== "access") {
       throw new AuthenticationError("Invalid token type");
@@ -71,7 +72,7 @@ const verifyAccessToken = (token) => {
  */
 const verifyRefreshToken = (token) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    const decoded = jwt.verify(token, jwtConfig.refresh.secret);
 
     if (decoded.type !== "refresh") {
       throw new AuthenticationError("Invalid token type");
