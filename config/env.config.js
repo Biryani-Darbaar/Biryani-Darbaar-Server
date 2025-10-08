@@ -17,7 +17,9 @@ const config = {
   // Server Configuration
   server: {
     port: parseInt(process.env.PORT, 10) || 4200,
-    apiBaseUrl: process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 4200}`,
+    apiBaseUrl:
+      process.env.API_BASE_URL ||
+      `http://localhost:${process.env.PORT || 4200}`,
     trustProxy: process.env.TRUST_PROXY === "true" || ENV === "production",
   },
 
@@ -33,7 +35,8 @@ const config = {
   firebase: {
     projectId: process.env.FIREBASE_PROJECT_ID,
     storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-    serviceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH || "./serviceAccountKey.json",
+    serviceAccountPath:
+      process.env.FIREBASE_SERVICE_ACCOUNT_PATH || "./serviceAccountKey.json",
   },
 
   // Stripe Configuration
@@ -73,7 +76,11 @@ const config = {
           "https://www.biryanidarbar.com",
           "https://admin.biryanidarbar.com",
         ]
-      : ["http://localhost:3000", "http://localhost:4200", "http://localhost:8080"],
+      : [
+          "http://localhost:3000",
+          "http://localhost:4200",
+          "http://localhost:8080",
+        ],
     credentials: true,
   },
 
@@ -90,11 +97,9 @@ const config = {
   logging: {
     level: process.env.LOG_LEVEL || (ENV === "production" ? "error" : "debug"),
     enableRequestLogging:
-      process.env.ENABLE_REQUEST_LOGGING === "true" ||
-      ENV !== "production",
+      process.env.ENABLE_REQUEST_LOGGING === "true" || ENV !== "production",
     enableErrorStackTrace:
-      process.env.ENABLE_ERROR_STACK_TRACE === "true" ||
-      ENV !== "production",
+      process.env.ENABLE_ERROR_STACK_TRACE === "true" || ENV !== "production",
   },
 
   // File Upload Configuration
@@ -159,9 +164,13 @@ const validateConfig = () => {
   if (missing.length > 0) {
     console.error("❌ Missing required environment variables:", missing);
     if (ENV === "production") {
-      throw new Error("Cannot start in production without all required environment variables");
+      throw new Error(
+        "Cannot start in production without all required environment variables"
+      );
     } else {
-      console.warn("⚠️  Warning: Some environment variables are missing. Using defaults.");
+      console.warn(
+        "⚠️  Warning: Some environment variables are missing. Using defaults."
+      );
     }
   }
 };
@@ -173,9 +182,13 @@ const printConfig = () => {
   console.log(`   Port: ${config.server.port}`);
   console.log(`   API Base URL: ${config.server.apiBaseUrl}`);
   console.log(`   CORS Origins: ${config.cors.origins.join(", ")}`);
-  console.log(`   Rate Limit: ${config.rateLimit.maxRequests} req/${config.rateLimit.windowMs}ms`);
+  console.log(
+    `   Rate Limit: ${config.rateLimit.maxRequests} req/${config.rateLimit.windowMs}ms`
+  );
   console.log(`   Log Level: ${config.logging.level}`);
-  console.log(`   Features: Gold=${config.features.goldMembership}, MiniGames=${config.features.miniGames}, Rewards=${config.features.rewards}`);
+  console.log(
+    `   Features: Gold=${config.features.goldMembership}, MiniGames=${config.features.miniGames}, Rewards=${config.features.rewards}`
+  );
   console.log("");
 };
 

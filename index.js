@@ -82,7 +82,7 @@ const server = app.listen(PORT, () => {
   console.log(`   Base URL: ${envConfig.server.apiBaseUrl}`);
   console.log(`   Time: ${new Date().toISOString()}`);
   console.log("=".repeat(60) + "\n");
-  
+
   // Print full configuration if in debug mode
   if (envConfig.debug.verbose) {
     printConfig();
