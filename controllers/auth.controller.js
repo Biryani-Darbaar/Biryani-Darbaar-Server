@@ -52,7 +52,8 @@ const isValidPhoneNumber = (phoneNumber) => {
  * Register a new user with email and password
  */
 const register = asyncHandler(async (req, res) => {
-  const { firstName, lastName, email, password, phoneNumber, address } = req.body;
+  const { firstName, lastName, email, password, phoneNumber, address } =
+    req.body;
 
   // Validation
   const errors = [];

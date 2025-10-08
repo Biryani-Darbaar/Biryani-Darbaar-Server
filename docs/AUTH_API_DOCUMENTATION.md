@@ -52,11 +52,11 @@ When access token expires → Use refresh token → Get new access token
 
 ### Token Lifetimes
 
-| Token Type | Expires In | Used For |
-|------------|-----------|----------|
-| Access Token | 7 days | API requests |
-| Refresh Token | 30 days | Renewing access tokens |
-| Session | 24 hours | Server-side tracking |
+| Token Type    | Expires In | Used For               |
+| ------------- | ---------- | ---------------------- |
+| Access Token  | 7 days     | API requests           |
+| Refresh Token | 30 days    | Renewing access tokens |
+| Session       | 24 hours   | Server-side tracking   |
 
 ---
 
@@ -71,6 +71,7 @@ These endpoints **DO NOT** require authentication.
 Creates a new user account.
 
 **Request Body:**
+
 ```json
 {
   "firstName": "John",
@@ -84,16 +85,17 @@ Creates a new user account.
 
 **Field Requirements:**
 
-| Field | Type | Required | Validation |
-|-------|------|----------|------------|
-| firstName | String | ✅ | Min 2 characters |
-| lastName | String | ✅ | Min 2 characters |
-| email | String | ✅ | Valid email format |
-| password | String | ✅ | Min 8 chars, 1 uppercase, 1 lowercase, 1 number |
-| phoneNumber | String | ✅ | 10-15 digits |
-| address | String | ✅ | Min 10 characters |
+| Field       | Type   | Required | Validation                                      |
+| ----------- | ------ | -------- | ----------------------------------------------- |
+| firstName   | String | ✅       | Min 2 characters                                |
+| lastName    | String | ✅       | Min 2 characters                                |
+| email       | String | ✅       | Valid email format                              |
+| password    | String | ✅       | Min 8 chars, 1 uppercase, 1 lowercase, 1 number |
+| phoneNumber | String | ✅       | 10-15 digits                                    |
+| address     | String | ✅       | Min 10 characters                               |
 
 **Password Rules:**
+
 - At least 8 characters
 - At least 1 uppercase letter (A-Z)
 - At least 1 lowercase letter (a-z)
@@ -103,6 +105,7 @@ Creates a new user account.
 ❌ Invalid: `password`, `Pass123`, `PASSWORD123`
 
 **Success Response (201):**
+
 ```json
 {
   "success": true,
@@ -129,6 +132,7 @@ Creates a new user account.
 ```
 
 **Error Response (400 - Validation Failed):**
+
 ```json
 {
   "success": false,
@@ -143,6 +147,7 @@ Creates a new user account.
 ```
 
 **Error Response (409 - User Exists):**
+
 ```json
 {
   "success": false,
@@ -159,6 +164,7 @@ Creates a new user account.
 Authenticate user with email and password only.
 
 **Request Body:**
+
 ```json
 {
   "email": "john.doe@example.com",
@@ -167,6 +173,7 @@ Authenticate user with email and password only.
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "success": true,
@@ -194,6 +201,7 @@ Authenticate user with email and password only.
 ```
 
 **Error Response (401):**
+
 ```json
 {
   "success": false,
@@ -210,6 +218,7 @@ Authenticate user with email and password only.
 Get a new access token using refresh token.
 
 **Request Body:**
+
 ```json
 {
   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -217,6 +226,7 @@ Get a new access token using refresh token.
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "success": true,
@@ -229,6 +239,7 @@ Get a new access token using refresh token.
 ```
 
 **Error Response (401):**
+
 ```json
 {
   "success": false,
@@ -245,9 +256,11 @@ Get a new access token using refresh token.
 Retrieve user information. **Public endpoint** - no authentication required.
 
 **URL Parameters:**
+
 - `id` - User ID
 
 **Success Response (200):**
+
 ```json
 {
   "success": true,
@@ -290,11 +303,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 **Auth:** Optional (works with or without token)
 
 **Request Headers:**
+
 ```
 Authorization: Bearer <access_token>
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "success": true,
@@ -311,11 +326,13 @@ Authorization: Bearer <access_token>
 **Auth:** Required (JWT)
 
 **Request Headers:**
+
 ```
 Authorization: Bearer <access_token>
 ```
 
 **Request Body:**
+
 ```json
 {
   "currentPassword": "OldSecurePass123",
@@ -324,6 +341,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "success": true,
@@ -333,6 +351,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Error Response (401):**
+
 ```json
 {
   "success": false,
@@ -348,11 +367,13 @@ Authorization: Bearer <access_token>
 **Auth:** Required (JWT)
 
 **Request Headers:**
+
 ```
 Authorization: Bearer <access_token>
 ```
 
 **Request Body (all fields optional):**
+
 ```json
 {
   "firstName": "John",
@@ -363,11 +384,13 @@ Authorization: Bearer <access_token>
 ```
 
 **Cannot Update:**
+
 - ❌ email
 - ❌ password (use `/change-password`)
 - ❌ createdAt
 
 **Success Response (200):**
+
 ```json
 {
   "success": true,
@@ -384,12 +407,14 @@ Authorization: Bearer <access_token>
 **Auth:** Required (JWT)
 
 **Request Headers:**
+
 ```
 Authorization: Bearer <access_token>
 Content-Type: multipart/form-data
 ```
 
 **Request Body (Form Data):**
+
 ```
 image: [File]
 ```
@@ -397,6 +422,7 @@ image: [File]
 **Supported File Types:** JPEG, PNG, WebP, GIF
 
 **Success Response (201):**
+
 ```json
 {
   "success": true,
@@ -415,11 +441,13 @@ image: [File]
 **Auth:** Required (JWT)
 
 **Request Headers:**
+
 ```
 Authorization: Bearer <access_token>
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "success": true,
@@ -438,11 +466,13 @@ Authorization: Bearer <access_token>
 **Auth:** Required (JWT) + Admin Role
 
 **Request Headers:**
+
 ```
 Authorization: Bearer <access_token>
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "success": true,
@@ -461,6 +491,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Error Response (401 - Not Admin):**
+
 ```json
 {
   "success": false,
@@ -476,14 +507,17 @@ Authorization: Bearer <access_token>
 **Auth:** Required (JWT) + Admin Role
 
 **Request Headers:**
+
 ```
 Authorization: Bearer <access_token>
 ```
 
 **URL Parameters:**
+
 - `id` - User ID
 
 **Success Response (200):**
+
 ```json
 {
   "success": true,
@@ -499,34 +533,42 @@ Authorization: Bearer <access_token>
 All order operations require the user to be logged in and send a valid access token.
 
 #### Create Order
+
 **`POST /orders`**  
 **Auth:** Required (JWT)
 
 #### Get All Orders
+
 **`GET /orders`**  
 **Auth:** Required (JWT)
 
 #### Get Orders by User
+
 **`GET /ordersByUser/:id`**  
 **Auth:** Required (JWT)
 
 #### Get Order by ID
+
 **`GET /orders/:id`**  
 **Auth:** Required (JWT)
 
 #### Update Order Status
+
 **`PATCH /orders/:id`**  
 **Auth:** Required (JWT)
 
 #### Update Order Status (Admin)
+
 **`PATCH /ordersAdmin/:id`**  
 **Auth:** Required (JWT)
 
 #### Get Total Order Count
+
 **`GET /orders/total-count`**  
 **Auth:** Required (JWT)
 
 #### Get Daily Summary
+
 **`GET /daily-summary`**  
 **Auth:** Required (JWT)
 
@@ -537,18 +579,22 @@ All order operations require the user to be logged in and send a valid access to
 All cart operations require authentication.
 
 #### Add to Cart
+
 **`POST /cart`**  
 **Auth:** Required (JWT)
 
 #### Get Cart
+
 **`POST /getCart`**  
 **Auth:** Required (JWT)
 
 #### Update Cart Item
+
 **`PUT /cart/:id`**  
 **Auth:** Required (JWT)
 
 #### Delete Cart Item
+
 **`DELETE /cart/:id`**  
 **Auth:** Required (JWT)
 
@@ -559,14 +605,17 @@ All cart operations require authentication.
 All payment operations require authentication.
 
 #### Create Payment Intent
+
 **`POST /create-payment-intent`**  
 **Auth:** Required (JWT)
 
 #### Confirm Payment
+
 **`POST /confirm-payment`**  
 **Auth:** Required (JWT)
 
 #### Get Payment Details
+
 **`GET /payment/:paymentIntentId`**  
 **Auth:** Required (JWT)
 
@@ -591,19 +640,20 @@ All payment operations require authentication.
 
 ### HTTP Status Codes
 
-| Code | Meaning | When It Occurs |
-|------|---------|----------------|
-| 200 | OK | Request successful |
-| 201 | Created | Resource created (registration, upload) |
-| 400 | Bad Request | Validation failed, invalid input |
-| 401 | Unauthorized | Invalid credentials, expired/missing token |
-| 404 | Not Found | User or resource not found |
-| 409 | Conflict | User already exists |
-| 500 | Internal Server Error | Server-side error |
+| Code | Meaning               | When It Occurs                             |
+| ---- | --------------------- | ------------------------------------------ |
+| 200  | OK                    | Request successful                         |
+| 201  | Created               | Resource created (registration, upload)    |
+| 400  | Bad Request           | Validation failed, invalid input           |
+| 401  | Unauthorized          | Invalid credentials, expired/missing token |
+| 404  | Not Found             | User or resource not found                 |
+| 409  | Conflict              | User already exists                        |
+| 500  | Internal Server Error | Server-side error                          |
 
 ### Common Error Messages
 
 **Authentication Errors (401):**
+
 ```json
 { "success": false, "message": "No authentication token provided" }
 { "success": false, "message": "Access token has expired" }
@@ -612,13 +662,20 @@ All payment operations require authentication.
 ```
 
 **Validation Errors (400):**
+
 ```json
 {
   "success": false,
   "message": "Validation failed",
   "errors": [
-    { "field": "firstName", "message": "First name must be at least 2 characters" },
-    { "field": "password", "message": "Password must be at least 8 characters with uppercase, lowercase, and number" }
+    {
+      "field": "firstName",
+      "message": "First name must be at least 2 characters"
+    },
+    {
+      "field": "password",
+      "message": "Password must be at least 8 characters with uppercase, lowercase, and number"
+    }
   ]
 }
 ```
@@ -630,11 +687,13 @@ All payment operations require authentication.
 ### Token Expiry Handling
 
 **When Access Token Expires:**
+
 1. Frontend receives 401 error with message "Access token has expired"
 2. Use refresh token to get new access token
 3. Retry the original request with new access token
 
 **When Refresh Token Expires:**
+
 1. Frontend receives 401 error with message "Refresh token has expired"
 2. Clear all tokens from storage
 3. Redirect user to login page
@@ -643,23 +702,23 @@ All payment operations require authentication.
 
 ```javascript
 // Store tokens after login/register
-localStorage.setItem('accessToken', data.tokens.accessToken);
-localStorage.setItem('refreshToken', data.tokens.refreshToken);
-localStorage.setItem('userId', data.user.userId);
+localStorage.setItem("accessToken", data.tokens.accessToken);
+localStorage.setItem("refreshToken", data.tokens.refreshToken);
+localStorage.setItem("userId", data.user.userId);
 
 // Make authenticated request
 const makeRequest = async (url, options = {}) => {
-  const accessToken = localStorage.getItem('accessToken');
-  
+  const accessToken = localStorage.getItem("accessToken");
+
   const response = await fetch(url, {
     ...options,
     headers: {
       ...options.headers,
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json'
-    }
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
   });
-  
+
   if (response.status === 401) {
     // Token expired, try refresh
     const refreshed = await refreshAccessToken();
@@ -671,25 +730,25 @@ const makeRequest = async (url, options = {}) => {
       handleLogout();
     }
   }
-  
+
   return response.json();
 };
 
 // Refresh access token
 const refreshAccessToken = async () => {
-  const refreshToken = localStorage.getItem('refreshToken');
-  
+  const refreshToken = localStorage.getItem("refreshToken");
+
   try {
-    const response = await fetch('http://localhost:4200/auth/refresh-token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken })
+    const response = await fetch("http://localhost:4200/auth/refresh-token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
     });
-    
+
     const data = await response.json();
-    
+
     if (data.success) {
-      localStorage.setItem('accessToken', data.data.accessToken);
+      localStorage.setItem("accessToken", data.data.accessToken);
       return true;
     }
     return false;
@@ -700,10 +759,10 @@ const refreshAccessToken = async () => {
 
 // Logout
 const handleLogout = () => {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
-  localStorage.removeItem('userId');
-  window.location.href = '/login';
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("userId");
+  window.location.href = "/login";
 };
 ```
 
@@ -712,6 +771,7 @@ const handleLogout = () => {
 ## Quick Reference
 
 ### Registration Flow
+
 ```
 POST /auth/register
 → Receive tokens
@@ -720,6 +780,7 @@ POST /auth/register
 ```
 
 ### Login Flow
+
 ```
 POST /auth/login
 → Receive tokens
@@ -728,6 +789,7 @@ POST /auth/login
 ```
 
 ### Protected Request Flow
+
 ```
 GET /cart (or any protected endpoint)
 → Include: Authorization: Bearer <accessToken>
@@ -736,6 +798,7 @@ GET /cart (or any protected endpoint)
 ```
 
 ### Logout Flow
+
 ```
 POST /auth/logout
 → Clear tokens from storage

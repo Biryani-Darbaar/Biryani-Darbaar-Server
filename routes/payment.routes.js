@@ -9,7 +9,15 @@ router.post(
   authenticateJWT,
   paymentController.createPaymentIntent
 );
-router.post("/confirm-payment", authenticateJWT, paymentController.confirmPayment);
-router.get("/payment/:paymentIntentId", authenticateJWT, paymentController.getPaymentDetails);
+router.post(
+  "/confirm-payment",
+  authenticateJWT,
+  paymentController.confirmPayment
+);
+router.get(
+  "/payment/:paymentIntentId",
+  authenticateJWT,
+  paymentController.getPaymentDetails
+);
 
 module.exports = router;
