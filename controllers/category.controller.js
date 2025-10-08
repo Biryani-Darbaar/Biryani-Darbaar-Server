@@ -19,6 +19,20 @@ const getCategories = async (req, res) => {
 
     successResponse(res, 200, categories);
   } catch (error) {
+    if (error.code === 16) {
+      // Firestore UNAUTHENTICATED error
+      console.error(
+        "Authentication error: Ensure valid Firebase credentials.",
+        error
+      );
+      return errorResponse(
+        res,
+        401,
+        "Authentication error: Invalid Firebase credentials."
+      );
+    }
+
+    console.error("Failed to fetch categories:", error);
     errorResponse(res, 500, "Failed to fetch categories", error);
   }
 };
