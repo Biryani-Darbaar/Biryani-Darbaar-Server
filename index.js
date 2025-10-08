@@ -1,15 +1,5 @@
 require("dotenv").config();
 
-// Load and validate environment configuration
-const { config: envConfig, printConfig } = require("./config/env.config");
-
-// Force color output in development to ensure colored logs (helps when terminals
-// or tooling might otherwise disable ANSI colors). This is safe only in dev.
-if (envConfig.isDevelopment) {
-  // Allow chalk/other libs to detect/force color even if stdout isn't a TTY
-  process.env.FORCE_COLOR = process.env.FORCE_COLOR || "1";
-}
-
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -74,22 +64,9 @@ app.use(errorHandler);
 
 // Start server
 const server = app.listen(PORT, () => {
-  console.log("\n" + "=".repeat(60));
-  console.log("🚀 Biryani Darbar Server Started Successfully!");
-  console.log("=".repeat(60));
-  console.log(`   Port: ${PORT}`);
-  console.log(`   Environment: ${envConfig.env}`);
-  console.log(`   Base URL: ${envConfig.server.apiBaseUrl}`);
-  console.log(`   Time: ${new Date().toISOString()}`);
-  console.log("=".repeat(60) + "\n");
-
-  // Print full configuration if in debug mode
-  if (envConfig.debug.verbose) {
-    printConfig();
-  }
-});
-
-// Graceful shutdown
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
+}); // Graceful shutdown
 const gracefulShutdown = (signal) => {
   console.log(`${signal} received, shutting down gracefully...`);
   server.close(() => {

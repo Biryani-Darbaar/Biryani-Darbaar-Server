@@ -1,22 +1,14 @@
 {
-  "name": "biryani-darbar-backend",
+  "name": "biryani-darbaar-server",
   "version": "2.0.0",
-  "description": "Modular backend API for Biryani Darbar application",
+  "description": "Backend server for Biryani Darbaar, a food delivery and restaurant management platform built with Express and Firebase.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [
-    "biryani",
-    "restaurant",
-    "food",
-    "delivery",
-    "firebase",
-    "express"
-  ],
-  "author": "",
+  "author": "Sarthak S Kumar",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.12.2",

@@ -5,16 +5,16 @@ const sessionConfig = {
 
   // Cookie configuration
   cookie: {
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    maxAge: parseInt(process.env.SESSION_MAX_AGE) || 86400000, // Default: 24 hours in ms
     secure: process.env.NODE_ENV === "production", // HTTPS only in production
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: process.env.SESSION_SAME_SITE || "strict",
   },
 
   // Session options
   resave: false,
   saveUninitialized: false,
-  name: "biriyani.sid",
+  name: process.env.SESSION_NAME || "biriyani.sid",
   rolling: true,
 };
 

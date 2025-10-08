@@ -18,7 +18,7 @@ const COLLECTION_NAMES = {
   USER_TOKENS: "userTokens",
 };
 
-const MAX_MINI_GAMES = 6;
+const MAX_MINI_GAMES = parseInt(process.env.MAX_MINI_GAMES) || 6;
 
 module.exports = {
   PORT,

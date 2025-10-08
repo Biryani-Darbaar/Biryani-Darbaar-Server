@@ -7,16 +7,13 @@ package-lock.json
 yarn.lock
 
 # Environment variables
-.env
+.env.*
 .env.local
 .env.*.local
 .env.backup.*
 
 # Keep environment templates
 !.env.example
-!.env.development
-!.env.qa
-!.env.production
 
 # Logs
 logs/

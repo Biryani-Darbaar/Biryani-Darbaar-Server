@@ -108,7 +108,7 @@ const register = asyncHandler(async (req, res) => {
   }
 
   // Hash password
-  const saltRounds = 12;
+  const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
   // Create user in Firebase Auth
@@ -348,7 +348,7 @@ const changePassword = asyncHandler(async (req, res) => {
   }
 
   // Hash new password
-  const saltRounds = 12;
+  const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
   const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
   // Update password in Firestore
