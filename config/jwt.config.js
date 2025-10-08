@@ -17,8 +17,8 @@ const jwtConfig = {
 
   // Options for token signing
   options: {
-    issuer: "biriyani-darbar-api",
-    audience: "biriyani-darbar-clients",
+    issuer: "biryani-darbar-api",
+    audience: "biryani-darbar-clients",
   },
 };
 

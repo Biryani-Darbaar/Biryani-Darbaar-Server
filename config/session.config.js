@@ -14,7 +14,7 @@ const sessionConfig = {
   // Session options
   resave: false,
   saveUninitialized: false,
-  name: process.env.SESSION_NAME || "biriyani.sid",
+  name: process.env.SESSION_NAME || "biryani.sid",
   rolling: true,
 };
 
