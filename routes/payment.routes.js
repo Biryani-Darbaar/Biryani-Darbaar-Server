@@ -1,15 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const paymentController = require("../controllers/payment.controller");
-const { optionalAuthenticate } = require("../middlewares");
+const { authenticateJWT } = require("../middlewares");
 
-// Payment routes
+// Payment routes - All require authentication
 router.post(
   "/create-payment-intent",
-  optionalAuthenticate,
+  authenticateJWT,
   paymentController.createPaymentIntent
 );
-router.post("/confirm-payment", paymentController.confirmPayment);
-router.get("/payment/:paymentIntentId", paymentController.getPaymentDetails);
+router.post("/confirm-payment", authenticateJWT, paymentController.confirmPayment);
+router.get("/payment/:paymentIntentId", authenticateJWT, paymentController.getPaymentDetails);
 
 module.exports = router;

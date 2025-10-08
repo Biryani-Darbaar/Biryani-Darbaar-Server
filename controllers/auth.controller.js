@@ -52,14 +52,20 @@ const isValidPhoneNumber = (phoneNumber) => {
  * Register a new user with email and password
  */
 const register = asyncHandler(async (req, res) => {
-  const { userName, email, password, phoneNumber } = req.body;
+  const { firstName, lastName, email, password, phoneNumber, address } = req.body;
 
   // Validation
   const errors = [];
-  if (!userName || userName.trim().length < 2) {
+  if (!firstName || firstName.trim().length < 2) {
     errors.push({
-      field: "userName",
-      message: "Name must be at least 2 characters",
+      field: "firstName",
+      message: "First name must be at least 2 characters",
+    });
+  }
+  if (!lastName || lastName.trim().length < 2) {
+    errors.push({
+      field: "lastName",
+      message: "Last name must be at least 2 characters",
     });
   }
   if (!email || !isValidEmail(email)) {
@@ -76,6 +82,12 @@ const register = asyncHandler(async (req, res) => {
     errors.push({
       field: "phoneNumber",
       message: "Valid phone number is required (10-15 digits)",
+    });
+  }
+  if (!address || address.trim().length < 10) {
+    errors.push({
+      field: "address",
+      message: "Valid address is required (minimum 10 characters)",
     });
   }
 
@@ -99,18 +111,22 @@ const register = asyncHandler(async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
   // Create user in Firebase Auth
+  const fullName = `${firstName.trim()} ${lastName.trim()}`;
   const userRecord = await admin.auth().createUser({
     email,
     password,
-    displayName: userName,
+    displayName: fullName,
     phoneNumber: phoneNumber.startsWith("+") ? phoneNumber : `+${phoneNumber}`,
   });
 
   // Store user data in Firestore
   await usersRef.doc(userRecord.uid).set({
-    userName: userName.trim(),
+    firstName: firstName.trim(),
+    lastName: lastName.trim(),
+    fullName,
     email: email.toLowerCase(),
     phoneNumber,
+    address: address.trim(),
     hashedPassword, // Store hashed password for additional security layer
     role: "user", // Default role for new users
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -123,18 +139,27 @@ const register = asyncHandler(async (req, res) => {
   // Generate tokens
   const tokens = generateTokens(userRecord.uid, email);
 
+  // Set session
+  req.session.userId = userRecord.uid;
+  req.session.loginTimestamp = Date.now();
+  setUserId(userRecord.uid);
+
   successResponse(
     res,
     201,
     {
       user: {
         userId: userRecord.uid,
-        userName,
+        firstName,
+        lastName,
+        fullName,
         email,
         phoneNumber,
+        address,
         emailVerified: false,
       },
       tokens,
+      sessionId: req.session.loginTimestamp,
     },
     "Registration successful"
   );
@@ -144,114 +169,76 @@ const register = asyncHandler(async (req, res) => {
  * Login with email and password
  */
 const login = asyncHandler(async (req, res) => {
-  const { email, password, idToken } = req.body;
+  const { email, password } = req.body;
 
-  // Support both Firebase ID token and email/password login
-  if (idToken) {
-    // Firebase ID token login
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-
-    // Set session data
-    req.session.userId = decodedToken.uid;
-    req.session.loginTimestamp = Date.now();
-    setUserId(decodedToken.uid);
-
-    // Get user data
-    const userDoc = await db
-      .collection(COLLECTION_NAMES.USERS)
-      .doc(decodedToken.uid)
-      .get();
-
-    if (!userDoc.exists) {
-      throw new NotFoundError("User");
-    }
-
-    const userData = userDoc.data();
-
-    // Generate JWT tokens
-    const tokens = generateTokens(decodedToken.uid, decodedToken.email);
-
-    successResponse(
-      res,
-      200,
-      {
-        user: {
-          userId: decodedToken.uid,
-          userName: userData.userName,
-          email: decodedToken.email,
-          emailVerified: decodedToken.email_verified,
-          phoneNumber: decodedToken.phone_number,
-        },
-        tokens,
-        sessionId: req.session.loginTimestamp,
-      },
-      "Login successful"
-    );
-  } else if (email && password) {
-    // Email/password login
-    if (!isValidEmail(email)) {
-      throw new ValidationError("Invalid email format");
-    }
-
-    // Find user by email
-    const usersRef = db.collection(COLLECTION_NAMES.USERS);
-    const userSnapshot = await usersRef
-      .where("email", "==", email.toLowerCase())
-      .limit(1)
-      .get();
-
-    if (userSnapshot.empty) {
-      throw new AuthenticationError("Invalid email or password");
-    }
-
-    const userDoc = userSnapshot.docs[0];
-    const userData = userDoc.data();
-
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      userData.hashedPassword
-    );
-
-    if (!isPasswordValid) {
-      throw new AuthenticationError("Invalid email or password");
-    }
-
-    const userId = userDoc.id;
-
-    // Update last login
-    await usersRef.doc(userId).update({
-      lastLogin: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    // Set session
-    req.session.userId = userId;
-    req.session.loginTimestamp = Date.now();
-    setUserId(userId);
-
-    // Generate tokens
-    const tokens = generateTokens(userId, email);
-
-    successResponse(
-      res,
-      200,
-      {
-        user: {
-          userId,
-          userName: userData.userName,
-          email: userData.email,
-          phoneNumber: userData.phoneNumber,
-          emailVerified: userData.emailVerified || false,
-          goldMember: userData.goldMember || false,
-        },
-        tokens,
-        sessionId: req.session.loginTimestamp,
-      },
-      "Login successful"
-    );
-  } else {
-    throw new ValidationError("Email and password, or ID token required");
+  // Validation
+  if (!email || !password) {
+    throw new ValidationError("Email and password are required");
   }
+
+  if (!isValidEmail(email)) {
+    throw new ValidationError("Invalid email format");
+  }
+
+  // Find user by email
+  const usersRef = db.collection(COLLECTION_NAMES.USERS);
+  const userSnapshot = await usersRef
+    .where("email", "==", email.toLowerCase())
+    .limit(1)
+    .get();
+
+  if (userSnapshot.empty) {
+    throw new AuthenticationError("Invalid email or password");
+  }
+
+  const userDoc = userSnapshot.docs[0];
+  const userData = userDoc.data();
+
+  // Verify password
+  const isPasswordValid = await bcrypt.compare(
+    password,
+    userData.hashedPassword
+  );
+
+  if (!isPasswordValid) {
+    throw new AuthenticationError("Invalid email or password");
+  }
+
+  const userId = userDoc.id;
+
+  // Update last login
+  await usersRef.doc(userId).update({
+    lastLogin: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  // Set session
+  req.session.userId = userId;
+  req.session.loginTimestamp = Date.now();
+  setUserId(userId);
+
+  // Generate tokens
+  const tokens = generateTokens(userId, email);
+
+  successResponse(
+    res,
+    200,
+    {
+      user: {
+        userId,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        fullName: userData.fullName,
+        email: userData.email,
+        phoneNumber: userData.phoneNumber,
+        address: userData.address,
+        emailVerified: userData.emailVerified || false,
+        goldMember: userData.goldMember || false,
+      },
+      tokens,
+      sessionId: req.session.loginTimestamp,
+    },
+    "Login successful"
+  );
 });
 
 /**
