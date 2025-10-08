@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-const PORT = process.env.PORT || 4200;
+const PORT = process.env.PORT
 
 const COLLECTION_NAMES = {
   USERS: "users",
@@ -18,7 +18,7 @@ const COLLECTION_NAMES = {
   USER_TOKENS: "userTokens",
 };
 
-const MAX_MINI_GAMES = parseInt(process.env.MAX_MINI_GAMES) || 6;
+const MAX_MINI_GAMES = parseInt(process.env.MAX_MINI_GAMES)
 
 module.exports = {
   PORT,

@@ -1,20 +1,20 @@
 // Session Configuration
 const sessionConfig = {
   // Secret key for session
-  secret: process.env.SESSION_SECRET || "secret",
+  secret: process.env.SESSION_SECRET,
 
   // Cookie configuration
   cookie: {
-    maxAge: parseInt(process.env.SESSION_MAX_AGE) || 86400000, // Default: 24 hours in ms
+    maxAge: parseInt(process.env.SESSION_MAX_AGE), // Default: 24 hours in ms
     secure: process.env.NODE_ENV === "production", // HTTPS only in production
     httpOnly: true,
-    sameSite: process.env.SESSION_SAME_SITE || "strict",
+    sameSite: process.env.SESSION_SAME_SITE,
   },
 
   // Session options
   resave: false,
   saveUninitialized: false,
-  name: process.env.SESSION_NAME || "biryani.sid",
+  name: process.env.SESSION_NAME,
   rolling: true,
 };
 

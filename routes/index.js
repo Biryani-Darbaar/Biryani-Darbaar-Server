@@ -33,7 +33,7 @@ const initRoutes = (app) => {
 
   // Health check route
   app.get("/", (req, res) => {
-    res.json({ message: "Biryani Darbar API is running" });
+    res.json({ message: "Biryani Darbaar API is running" });
   });
 };
 

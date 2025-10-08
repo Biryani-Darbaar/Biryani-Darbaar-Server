@@ -30,7 +30,7 @@ const corsOptions = {
     "Origin",
   ],
   exposedHeaders: ["Content-Range", "X-Content-Range"],
-  maxAge: parseInt(process.env.CORS_MAX_AGE) || 86400, // Default: 24 hours in seconds
+  maxAge: parseInt(process.env.CORS_MAX_AGE), // Default: 24 hours in seconds
 };
 
 module.exports = corsOptions;
