@@ -29,10 +29,10 @@ const validatePassword = (password) => {
  * Validate phone number
  */
 const validatePhoneNumber = (phoneNumber) => {
-  const phoneRegex = /^\+?[1-9]\d{9,14}$/;
-  if (!phoneRegex.test(phoneNumber)) {
-    throw new ValidationError("Invalid phone number format");
-  }
+  // const phoneRegex = /^\+?[1-9]\d{9,14}$/;
+  // if (!phoneRegex.test(phoneNumber)) {
+  //   throw new ValidationError("Invalid phone number format");
+  // } //TODO: More robust phone validation can be added later
   return true;
 };
 

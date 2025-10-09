@@ -1,5 +1,5 @@
 const { admin, db } = require("../config/firebase.config");
-const bcrypt = require("bcryptjs");
+const axios = require("axios");
 const { COLLECTION_NAMES } = require("../constants");
 const { setUserId, storage, getUserId } = require("../utils/session.util");
 const { uploadFile } = require("../utils/storage.util");
@@ -96,31 +96,28 @@ const register = asyncHandler(async (req, res) => {
     throw new ValidationError("Validation failed", errors);
   }
 
-  // Check if user already exists
-  const usersRef = db.collection(COLLECTION_NAMES.USERS);
-  const existingUser = await usersRef
-    .where("email", "==", email)
-    .limit(1)
-    .get();
+  // Create user in Firebase Auth (this will throw error if email already exists)
+  const fullName = `${firstName.trim()} ${lastName.trim()}`;
+  let userRecord;
 
-  if (!existingUser.empty) {
-    throw new ConflictError("User with this email already exists");
+  try {
+    userRecord = await admin.auth().createUser({
+      email: email.toLowerCase(),
+      password,
+      displayName: fullName,
+      phoneNumber: phoneNumber.startsWith("+")
+        ? phoneNumber
+        : `+${phoneNumber}`,
+    });
+  } catch (error) {
+    if (error.code === "auth/email-already-exists") {
+      throw new ConflictError("User with this email already exists");
+    }
+    throw error;
   }
 
-  // Hash password
-  const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
-  const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-  // Create user in Firebase Auth
-  const fullName = `${firstName.trim()} ${lastName.trim()}`;
-  const userRecord = await admin.auth().createUser({
-    email,
-    password,
-    displayName: fullName,
-    phoneNumber: phoneNumber.startsWith("+") ? phoneNumber : `+${phoneNumber}`,
-  });
-
-  // Store user data in Firestore
+  // Store additional user data in Firestore (no password here!)
+  const usersRef = db.collection(COLLECTION_NAMES.USERS);
   await usersRef.doc(userRecord.uid).set({
     firstName: firstName.trim(),
     lastName: lastName.trim(),
@@ -128,7 +125,6 @@ const register = asyncHandler(async (req, res) => {
     email: email.toLowerCase(),
     phoneNumber,
     address: address.trim(),
-    hashedPassword, // Store hashed password for additional security layer
     role: "user", // Default role for new users
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -154,7 +150,7 @@ const register = asyncHandler(async (req, res) => {
         firstName,
         lastName,
         fullName,
-        email,
+        email: email.toLowerCase(),
         phoneNumber,
         address,
         emailVerified: false,
@@ -181,36 +177,81 @@ const login = asyncHandler(async (req, res) => {
     throw new ValidationError("Invalid email format");
   }
 
-  // Find user by email
+  // Verify credentials using Firebase Admin SDK
+  // First, get the user by email to get the uid
+  let userRecord;
+  try {
+    userRecord = await admin.auth().getUserByEmail(email.toLowerCase());
+  } catch (error) {
+    if (error.code === "auth/user-not-found") {
+      throw new AuthenticationError("Invalid email or password");
+    }
+    throw error;
+  }
+
+  // Create a custom token for verification (Admin SDK doesn't have direct password verification)
+  // So we need to use Firebase Client SDK approach via REST API
+  const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
+
+  if (!FIREBASE_API_KEY) {
+    console.error("FIREBASE_API_KEY not set in environment variables");
+    throw new Error("Authentication configuration error");
+  }
+
+  // Verify password using Firebase Auth REST API
+  const verifyUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`;
+
+  let authResponse;
+  try {
+    const axios = require("axios");
+    authResponse = await axios.post(verifyUrl, {
+      email: email.toLowerCase(),
+      password,
+      returnSecureToken: true,
+    });
+  } catch (error) {
+    if (error.response && error.response.data) {
+      const errorCode = error.response.data.error.message;
+      if (
+        errorCode === "INVALID_PASSWORD" ||
+        errorCode === "EMAIL_NOT_FOUND" ||
+        errorCode === "INVALID_LOGIN_CREDENTIALS"
+      ) {
+        throw new AuthenticationError("Invalid email or password");
+      }
+    }
+    throw new AuthenticationError("Invalid email or password");
+  }
+
+  const userId = userRecord.uid;
+
+  // Get user data from Firestore
   const usersRef = db.collection(COLLECTION_NAMES.USERS);
-  const userSnapshot = await usersRef
-    .where("email", "==", email.toLowerCase())
-    .limit(1)
-    .get();
+  const userDoc = await usersRef.doc(userId).get();
 
-  if (userSnapshot.empty) {
-    throw new AuthenticationError("Invalid email or password");
+  let userData;
+  if (userDoc.exists) {
+    userData = userDoc.data();
+
+    // Update last login
+    await usersRef.doc(userId).update({
+      lastLogin: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  } else {
+    // If user doesn't exist in Firestore, create a basic profile
+    userData = {
+      email: userRecord.email,
+      displayName: userRecord.displayName,
+      phoneNumber: userRecord.phoneNumber,
+      emailVerified: userRecord.emailVerified,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      role: "user",
+      goldMember: false,
+      rewards: 0,
+    };
+
+    await usersRef.doc(userId).set(userData);
   }
-
-  const userDoc = userSnapshot.docs[0];
-  const userData = userDoc.data();
-
-  // Verify password
-  const isPasswordValid = await bcrypt.compare(
-    password,
-    userData.hashedPassword
-  );
-
-  if (!isPasswordValid) {
-    throw new AuthenticationError("Invalid email or password");
-  }
-
-  const userId = userDoc.id;
-
-  // Update last login
-  await usersRef.doc(userId).update({
-    lastLogin: admin.firestore.FieldValue.serverTimestamp(),
-  });
 
   // Set session
   req.session.userId = userId;
@@ -228,11 +269,12 @@ const login = asyncHandler(async (req, res) => {
         userId,
         firstName: userData.firstName,
         lastName: userData.lastName,
-        fullName: userData.fullName,
-        email: userData.email,
-        phoneNumber: userData.phoneNumber,
+        fullName: userData.fullName || userRecord.displayName,
+        email: userRecord.email,
+        phoneNumber: userData.phoneNumber || userRecord.phoneNumber,
         address: userData.address,
-        emailVerified: userData.emailVerified || false,
+        emailVerified:
+          userData.emailVerified || userRecord.emailVerified || false,
         goldMember: userData.goldMember || false,
       },
       tokens,
@@ -328,38 +370,47 @@ const changePassword = asyncHandler(async (req, res) => {
     );
   }
 
-  // Get user data
-  const userDoc = await db.collection(COLLECTION_NAMES.USERS).doc(userId).get();
+  // Get user from Firebase Auth
+  const userRecord = await admin.auth().getUser(userId);
 
-  if (!userDoc.exists) {
-    throw new NotFoundError("User");
+  // Verify current password using Firebase Auth REST API
+  const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
+
+  if (!FIREBASE_API_KEY) {
+    console.error("FIREBASE_API_KEY not set in environment variables");
+    throw new Error("Authentication configuration error");
   }
 
-  const userData = userDoc.data();
+  const verifyUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`;
 
-  // Verify current password
-  const isPasswordValid = await bcrypt.compare(
-    currentPassword,
-    userData.hashedPassword
-  );
-
-  if (!isPasswordValid) {
+  try {
+    const axios = require("axios");
+    await axios.post(verifyUrl, {
+      email: userRecord.email,
+      password: currentPassword,
+      returnSecureToken: true,
+    });
+  } catch (error) {
+    if (error.response && error.response.data) {
+      const errorCode = error.response.data.error.message;
+      if (
+        errorCode === "INVALID_PASSWORD" ||
+        errorCode === "INVALID_LOGIN_CREDENTIALS"
+      ) {
+        throw new AuthenticationError("Current password is incorrect");
+      }
+    }
     throw new AuthenticationError("Current password is incorrect");
   }
 
-  // Hash new password
-  const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
-  const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+  // Update password in Firebase Auth
+  await admin.auth().updateUser(userId, { password: newPassword });
 
-  // Update password in Firestore
+  // Update timestamp in Firestore
   await db.collection(COLLECTION_NAMES.USERS).doc(userId).update({
-    hashedPassword,
     passwordChangedAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   });
-
-  // Update password in Firebase Auth
-  await admin.auth().updateUser(userId, { password: newPassword });
 
   successResponse(res, 200, null, "Password changed successfully");
 });
@@ -377,7 +428,7 @@ const getUserById = asyncHandler(async (req, res) => {
   }
 
   const userData = userDoc.data();
-  delete userData.hashedPassword; // Don't send password hash
+  // No need to delete hashedPassword since we're not storing it anymore
 
   successResponse(res, 200, { userId: userDoc.id, ...userData });
 });
@@ -390,7 +441,6 @@ const updateUser = asyncHandler(async (req, res) => {
   const updatedUserData = req.body;
 
   // Remove sensitive fields that shouldn't be updated directly
-  delete updatedUserData.hashedPassword;
   delete updatedUserData.email;
   delete updatedUserData.createdAt;
 
@@ -412,7 +462,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
 
   const users = usersSnapshot.docs.map((doc) => {
     const data = doc.data();
-    delete data.hashedPassword; // Don't send password hashes
+    // No need to delete hashedPassword since we're not storing it anymore
     return { userId: doc.id, ...data };
   });
 

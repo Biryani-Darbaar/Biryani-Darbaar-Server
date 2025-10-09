@@ -21,7 +21,7 @@ const initRoutes = (app) => {
   app.use(categoryRoutes);
   app.use(orderRoutes);
   app.use(cartRoutes);
-  app.use(authRoutes);
+  app.use("/auth", authRoutes); // Mount auth routes at /auth prefix
   app.use(locationRoutes);
   app.use(promoRoutes);
   app.use(paymentRoutes);

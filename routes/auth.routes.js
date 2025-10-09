@@ -9,18 +9,14 @@ const {
 } = require("../middlewares");
 
 // Public auth routes
-router.post("/auth/register", authController.register);
-router.post("/auth/signup", authController.signup); // Alias for backward compatibility
-router.post("/auth/login", authController.login);
-router.post("/auth/refresh-token", authController.refreshToken);
+router.post("/register", authController.register);
+router.post("/signup", authController.signup); // Alias for backward compatibility
+router.post("/login", authController.login);
+router.post("/refresh-token", authController.refreshToken);
 
 // Protected auth routes
-router.post("/auth/logout", optionalAuthenticate, authController.logout);
-router.post(
-  "/auth/change-password",
-  authenticateJWT,
-  authController.changePassword
-);
+router.post("/logout", optionalAuthenticate, authController.logout);
+router.post("/change-password", authenticateJWT, authController.changePassword);
 
 // User routes
 router.get("/user/:id", authController.getUserById);
