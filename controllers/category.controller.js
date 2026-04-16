@@ -14,7 +14,9 @@ const getCategories = async (req, res) => {
     const categories = [];
 
     categoriesSnapshot.forEach((doc) => {
-      categories.push(doc.data().name);
+      // Use the 'name' field if available, otherwise use the document ID
+      const categoryName = doc.data().name || doc.id;
+      categories.push(categoryName);
     });
 
     successResponse(res, 200, categories);
@@ -57,7 +59,12 @@ const createCategory = async (req, res) => {
     }
 
     // Add new category to Firestore
-    await categoryRef.set({ name });
+    // Store both 'name' field and ensure document ID is the category name
+    await categoryRef.set({ 
+      name,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
 
     successResponse(res, 201, {
       message: "Category created successfully",

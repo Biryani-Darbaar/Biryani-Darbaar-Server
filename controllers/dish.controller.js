@@ -9,67 +9,112 @@ const {
 const { ValidationError, NotFoundError } = require("../utils/errors.util");
 const { getUserId } = require("../utils/session.util");
 
+
+/**
+ * Helper: Find a category document by its 'name' field
+ * This allows querying by category name even if the document ID is different
+ */
+const findCategoryByName = async (categoryName) => {
+  // First try: assume document ID equals name (most common case)
+  const directRef = db.collection(COLLECTION_NAMES.CATEGORY).doc(categoryName);
+  const directDoc = await directRef.get();
+  
+  if (directDoc.exists) {
+    return directDoc;
+  }
+  
+  // Fallback: query by 'name' field via .where()
+  const querySnapshot = await db
+    .collection(COLLECTION_NAMES.CATEGORY)
+    .where("name", "==", categoryName)
+    .limit(1)
+    .get();
+  
+  if (!querySnapshot.empty) {
+    return querySnapshot.docs[0];
+  }
+  
+  // Not found
+  return null;
+};
+
 /**
  * Add a new dish
  */
 const addDish = asyncHandler(async (req, res) => {
-  const dishData = JSON.parse(req.body.dishData);
-  const file = req.file;
+  // Parse dishData JSON from multipart body (sent by admin frontend)
+  let dishData;
+  try {
+    dishData = JSON.parse(req.body.dishData);
+  } catch {
+    throw new ValidationError("Invalid dishData — expected a JSON string in req.body.dishData");
+  }
+
+  const file     = req.file;
   const category = dishData.category;
 
   if (!category) {
     throw new ValidationError("Category is required");
   }
 
-  let imageUrl = "";
-
-  // Check if the category document exists, and if not, create it with a 'name' field
+  // ── Ensure category document exists in Firestore ─────────────────────────
   const categoryDocRef = db.collection(COLLECTION_NAMES.CATEGORY).doc(category);
-  const categoryDoc = await categoryDocRef.get();
-
+  const categoryDoc    = await categoryDocRef.get();
   if (!categoryDoc.exists) {
     await categoryDocRef.set({ name: category });
   }
 
-  // If an image is provided, upload it to Firebase Storage
+  // ── Upload image to local disk ───────────────────────────────────────────
+  // Stored at  public/assets/dishes/<category>/<timestamp>-<filename>
+  // Served at  {SERVER_BASE_URL}/assets/dishes/<category>/<timestamp>-<filename>
+  let imageUrl = "";
   if (file) {
-    imageUrl = await uploadFile(file, category, file.originalname);
+    imageUrl = await uploadFile(file, `dishes/${category}`, file.originalname);
   }
 
-  const goldPriceRef = db
-    .collection(COLLECTION_NAMES.GOLD_PRICE)
-    .doc("current");
-  const goldPriceDoc = await goldPriceRef.get();
-  const goldPriceData = goldPriceDoc.data();
-  const goldPrice = dishData.price * (goldPriceData.goldPrice / 100);
+  // ── Gold price calculation (null-safe) ───────────────────────────────────
+  // The goldprice/current document is optional — fall back to regular price
+  // if the document is missing or the goldPrice field isn't set.
+  let goldPrice = Number(dishData.price) || 0;
+  try {
+    const goldPriceDoc = await db
+      .collection(COLLECTION_NAMES.GOLD_PRICE)
+      .doc("current")
+      .get();
+    if (goldPriceDoc.exists) {
+      const gp = goldPriceDoc.data()?.goldPrice;
+      if (typeof gp === "number" && gp > 0) {
+        // goldPrice field stores the percentage members pay (e.g. 90 → 10 % off)
+        goldPrice = Number(dishData.price) * (gp / 100);
+      }
+    }
+  } catch (err) {
+    // Non-fatal: gold price lookup failure must not block dish creation.
+    console.warn("Could not fetch gold price — defaulting goldPrice to regular price:", err.message);
+  }
 
-  // Remove the category field from dishData
-  const { category: dishCategory, ...dishDataWithoutCategory } = dishData;
+  // ── Write dish document to Firestore ─────────────────────────────────────
+  // Remove category from the stored fields (it is implicit in the doc path).
+  const { category: _cat, ...dishFields } = dishData;
 
-  // Store dish data and image URL in Firestore
-  const timestamp = Date.now().toString();
+  const timestamp  = Date.now().toString();
   const newDishRef = db
     .collection(COLLECTION_NAMES.CATEGORY)
     .doc(category)
     .collection(COLLECTION_NAMES.DISHES)
     .doc(timestamp);
 
-  const newDishData = {
-    ...dishDataWithoutCategory,
-    image: imageUrl,
+  await newDishRef.set({
+    ...dishFields,
+    image:     imageUrl,
     available: true,
     goldPrice,
-  };
-
-  await newDishRef.set(newDishData);
+  });
 
   successResponse(
     res,
     201,
-    {
-      dishId: newDishRef.id,
-      imageUrl,
-    },
+    { dishId: newDishRef.id, imageUrl },
     "Dish added successfully"
   );
 });
@@ -93,10 +138,16 @@ const getDishesByCategory = asyncHandler(async (req, res) => {
     user = userSnapshot.data();
   }
 
+  // Find category by name (handles both doc ID and name field matching)
+  const categoryDoc = await findCategoryByName(category);
+  if (!categoryDoc) {
+    throw new NotFoundError(`Category: ${category}`);
+  }
+
   // Fetch dishes within the category
   const dishesSnapshot = await db
     .collection(COLLECTION_NAMES.CATEGORY)
-    .doc(category)
+    .doc(categoryDoc.id)
     .collection(COLLECTION_NAMES.DISHES)
     .get();
 
@@ -200,9 +251,15 @@ const updateDish = async (req, res) => {
   const file = req.file;
 
   try {
+    // Find category by name (handles both doc ID and name field matching)
+    const categoryDoc = await findCategoryByName(category);
+    if (!categoryDoc) {
+      return errorResponse(res, 404, `Category not found: ${category}`);
+    }
+
     const dishRef = db
       .collection(COLLECTION_NAMES.CATEGORY)
-      .doc(category)
+      .doc(categoryDoc.id)
       .collection(COLLECTION_NAMES.DISHES)
       .doc(dishId);
     const dishDoc = await dishRef.get();
@@ -214,15 +271,12 @@ const updateDish = async (req, res) => {
     let imageUrl = dishData.image;
 
     if (file) {
-      // Delete old image
-      const oldDishData = dishDoc.data();
-      const oldImageUrl = oldDishData.image;
-      if (oldImageUrl) {
-        await deleteFile(oldImageUrl);
-      }
+      // Remove the old image from disk (no-ops for old Firebase Storage URLs)
+      const oldImageUrl = dishDoc.data().image;
+      if (oldImageUrl) await deleteFile(oldImageUrl);
 
-      // Upload new image
-      imageUrl = await uploadFile(file, category, file.originalname);
+      // Save new image to  public/assets/dishes/<category>/
+      imageUrl = await uploadFile(file, `dishes/${category}`, file.originalname);
     }
 
     // Prepare the updated dish data
@@ -250,9 +304,15 @@ const deleteDish = async (req, res) => {
   const { category, id: dishId } = req.params;
 
   try {
+    // Find category by name (handles both doc ID and name field matching)
+    const categoryDoc = await findCategoryByName(category);
+    if (!categoryDoc) {
+      return errorResponse(res, 404, `Category not found: ${category}`);
+    }
+
     const dishRef = db
       .collection(COLLECTION_NAMES.CATEGORY)
-      .doc(category)
+      .doc(categoryDoc.id)
       .collection(COLLECTION_NAMES.DISHES)
       .doc(dishId);
     const dishDoc = await dishRef.get();
@@ -285,9 +345,15 @@ const getDishesByCategoryAdmin = async (req, res) => {
   const category = req.params.category;
 
   try {
+    // Find category by name (handles both doc ID and name field matching)
+    const categoryDoc = await findCategoryByName(category);
+    if (!categoryDoc) {
+      return errorResponse(res, 404, `Category not found: ${category}`);
+    }
+
     const dishesSnapshot = await db
       .collection(COLLECTION_NAMES.CATEGORY)
-      .doc(category)
+      .doc(categoryDoc.id)
       .collection(COLLECTION_NAMES.DISHES)
       .get();
     const dishes = [];
@@ -305,13 +371,18 @@ const getDishesByCategoryAdmin = async (req, res) => {
  */
 const updateDishAdmin = async (req, res) => {
   const { category, id: dishId } = req.params;
-  const updatedDishData = req.body;
   const file = req.file;
 
   try {
+    // Find category by name (handles both doc ID and name field matching)
+    const categoryDoc = await findCategoryByName(category);
+    if (!categoryDoc) {
+      return errorResponse(res, 404, `Category not found: ${category}`);
+    }
+
     const dishRef = db
       .collection(COLLECTION_NAMES.CATEGORY)
-      .doc(category)
+      .doc(categoryDoc.id)
       .collection(COLLECTION_NAMES.DISHES)
       .doc(dishId);
     const dishDoc = await dishRef.get();
@@ -320,24 +391,23 @@ const updateDishAdmin = async (req, res) => {
       return errorResponse(res, 404, "Dish not found");
     }
 
+    // Coerce types: multipart sends strings; JSON body already has correct types.
+    const raw = req.body;
+    const updatedDishData = { ...raw };
+    if (raw.price !== undefined)     updatedDishData.price     = parseFloat(raw.price) || raw.price;
+    if (raw.available !== undefined) updatedDishData.available = raw.available === "true" || raw.available === true;
+
     let imageUrl = updatedDishData.image;
 
     if (file) {
-      // Delete old image
-      const oldDishData = dishDoc.data();
-      const oldImageUrl = oldDishData.image;
-      if (oldImageUrl) {
-        await deleteFile(oldImageUrl);
-      }
+      // Remove old image from disk (no-ops for old Firebase Storage URLs)
+      const oldImageUrl = dishDoc.data().image;
+      if (oldImageUrl) await deleteFile(oldImageUrl);
 
-      // Upload new image
-      imageUrl = await uploadFile(file, category, file.originalname);
+      // Save new image to  public/assets/dishes/<category>/
+      imageUrl = await uploadFile(file, `dishes/${category}`, file.originalname);
 
-      const updatedDishDataWithImage = {
-        ...updatedDishData,
-        image: imageUrl,
-      };
-      await dishRef.update(updatedDishDataWithImage);
+      await dishRef.update({ ...updatedDishData, image: imageUrl });
 
       return successResponse(res, 200, {
         message: "Dish updated successfully",
@@ -345,11 +415,7 @@ const updateDishAdmin = async (req, res) => {
       });
     }
 
-    const updatedDishDataWithoutImage = {
-      ...updatedDishData,
-    };
-
-    await dishRef.update(updatedDishDataWithoutImage);
+    await dishRef.update(updatedDishData);
     successResponse(res, 200, {
       message: "Dish updated successfully",
     });
@@ -370,9 +436,15 @@ const applyDiscount = async (req, res) => {
   }
 
   try {
+    // Find category by name (handles both doc ID and name field matching)
+    const categoryDoc = await findCategoryByName(category);
+    if (!categoryDoc) {
+      return errorResponse(res, 404, `Category not found: ${category}`);
+    }
+
     const dishRef = db
       .collection(COLLECTION_NAMES.CATEGORY)
-      .doc(category)
+      .doc(categoryDoc.id)
       .collection(COLLECTION_NAMES.DISHES)
       .doc(dishId);
     const dishDoc = await dishRef.get();
@@ -449,9 +521,15 @@ const toggleAvailability = async (req, res) => {
   }
 
   try {
+    // Find category by name (handles both doc ID and name field matching)
+    const categoryDoc = await findCategoryByName(category);
+    if (!categoryDoc) {
+      return errorResponse(res, 404, `Category not found: ${category}`);
+    }
+
     const dishRef = db
       .collection(COLLECTION_NAMES.CATEGORY)
-      .doc(category)
+      .doc(categoryDoc.id)
       .collection(COLLECTION_NAMES.DISHES)
       .doc(id);
     const dishDoc = await dishRef.get();
