@@ -5,6 +5,7 @@ require("dotenv").config({
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const path = require("path");
 const session = require("express-session");
 const cacheController = require("express-cache-controller");
 
@@ -28,6 +29,22 @@ app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
 
 // CORS Configuration
 app.use(cors(corsOptions));
+
+// ── Static file serving ───────────────────────────────────────────────────────
+// Serves everything under  <root>/public/  at the root URL path.
+// Dish images, special-offer media, user avatars, etc. are stored under
+// public/assets/<subdir>/ and are accessible at:
+//   GET  /assets/<subdir>/<filename>
+// The full URL (including SERVER_BASE_URL) is what gets saved in Firestore.
+app.use(
+  express.static(path.join(__dirname, "public"), {
+    // Allow cross-origin image loads from the admin and user-facing frontends.
+    setHeaders(res) {
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+    },
+  })
+);
 
 // Disable etag and caching
 app.set("etag", false);
