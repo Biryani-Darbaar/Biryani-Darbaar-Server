@@ -34,18 +34,23 @@ const isValidPassword = (password) => {
 };
 
 /**
- * Validate phone number format
+ * Validate and normalise an Australian phone number.
+ * Accepted formats (spaces allowed):
+ *   04XX XXX XXX  |  +61 4XX XXX XXX  |  02/03/07/08 XXXX XXXX  |  +61 2/3/7/8 XXXX XXXX
+ * Regex (after stripping spaces): /^(\+61[2-9]\d{8}|0[2-9]\d{8})$/
  */
-const isValidPhoneNumber = (phoneNumber) => {
-  // Remove all non-digit characters
-  const cleaned = phoneNumber.replace(/\D/g, "");
+const isValidAustralianPhoneNumber = (phoneNumber) => {
+  const stripped = phoneNumber.replace(/\s+/g, "");
+  return /^(\+61[2-9]\d{8}|0[2-9]\d{8})$/.test(stripped);
+};
 
-  // Check if it's a valid length (10-15 digits)
-  if (cleaned.length < 10 || cleaned.length > 15) {
-    return false;
-  }
-
-  return true;
+/**
+ * Normalise to E.164 format (+61XXXXXXXXX) for consistent Firestore storage.
+ */
+const normalizePhoneNumber = (phoneNumber) => {
+  const stripped = phoneNumber.replace(/\s+/g, "");
+  if (stripped.startsWith("+61")) return stripped;
+  return "+61" + stripped.slice(1); // 0XXXXXXXXX → +61XXXXXXXXX
 };
 
 /**
@@ -79,10 +84,11 @@ const register = asyncHandler(async (req, res) => {
         "Password must be at least 8 characters with uppercase, lowercase, and number",
     });
   }
-  if (!phoneNumber || !isValidPhoneNumber(phoneNumber)) {
+  if (!phoneNumber || !isValidAustralianPhoneNumber(phoneNumber)) {
     errors.push({
       field: "phoneNumber",
-      message: "Valid phone number is required (10-15 digits)",
+      message:
+        "Valid Australian phone number required (e.g. 0412 345 678 or +61 412 345 678)",
     });
   }
   if (!address || address.trim().length < 10) {
@@ -96,37 +102,44 @@ const register = asyncHandler(async (req, res) => {
     throw new ValidationError("Validation failed", errors);
   }
 
-  // Check if user already exists
+  // Normalise email for consistent uniqueness check
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // Check if user already exists in Firestore
   const usersRef = db.collection(COLLECTION_NAMES.USERS);
   const existingUser = await usersRef
-    .where("email", "==", email)
+    .where("email", "==", normalizedEmail)
     .limit(1)
     .get();
 
   if (!existingUser.empty) {
-    throw new ConflictError("User with this email already exists");
+    throw new ConflictError("An account with this email already exists");
   }
 
   // Hash password
   const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-  // Create user in Firebase Auth
+  // Create user in Firebase Auth.
+  // Phone number is stored only in Firestore — we omit it here to avoid
+  // E.164 validation errors for local-format numbers (e.g. Australian 04xx).
   const fullName = `${firstName.trim()} ${lastName.trim()}`;
   const userRecord = await admin.auth().createUser({
-    email,
+    email: normalizedEmail,
     password,
     displayName: fullName,
-    phoneNumber: phoneNumber.startsWith("+") ? phoneNumber : `+${phoneNumber}`,
   });
+
+  // Normalise phone to E.164 before storing
+  const normalizedPhone = normalizePhoneNumber(phoneNumber);
 
   // Store user data in Firestore
   await usersRef.doc(userRecord.uid).set({
     firstName: firstName.trim(),
     lastName: lastName.trim(),
     fullName,
-    email: email.toLowerCase(),
-    phoneNumber,
+    email: normalizedEmail,
+    phoneNumber: normalizedPhone,
     address: address.trim(),
     hashedPassword, // Store hashed password for additional security layer
     role: "user", // Default role for new users
@@ -151,12 +164,14 @@ const register = asyncHandler(async (req, res) => {
     {
       user: {
         userId: userRecord.uid,
-        firstName,
-        lastName,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         fullName,
-        email,
-        phoneNumber,
-        address,
+        email: normalizedEmail,
+        phoneNumber: normalizedPhone,
+        address: address.trim(),
+        role: "user",
+        isGoldMember: false,
         emailVerified: false,
       },
       tokens,
@@ -232,8 +247,9 @@ const login = asyncHandler(async (req, res) => {
         email: userData.email,
         phoneNumber: userData.phoneNumber,
         address: userData.address,
+        role: userData.role || "user",
+        isGoldMember: userData.goldMember || false,
         emailVerified: userData.emailVerified || false,
-        goldMember: userData.goldMember || false,
       },
       tokens,
       sessionId: req.session.loginTimestamp,
@@ -301,7 +317,7 @@ const refreshToken = asyncHandler(async (req, res) => {
     200,
     {
       accessToken,
-      expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+      expiresIn: process.env.JWT_EXPIRES_IN || "15m",
     },
     "Token refreshed successfully"
   );
@@ -483,6 +499,35 @@ const getUserReward = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Generate a Firebase custom token for the currently authenticated user.
+ * The frontend uses this to sign into the Firebase client SDK so it can
+ * attach Firestore `onSnapshot` listeners for real-time order tracking.
+ *
+ * The custom token UID equals the user's backend userId, so Firestore security
+ * rules can use `request.auth.uid == resource.data.userId` to restrict reads.
+ */
+const getFirebaseToken = asyncHandler(async (req, res) => {
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    throw new AuthenticationError("Authentication required");
+  }
+
+  // Verify the user still exists before issuing a token
+  const userDoc = await db.collection(COLLECTION_NAMES.USERS).doc(userId).get();
+  if (!userDoc.exists) {
+    throw new AuthenticationError("User not found");
+  }
+
+  // Admin users receive an `admin: true` claim so Firestore security rules
+  // can grant them collection-wide read access for Live Orders / onSnapshot.
+  const additionalClaims = req.user?.role === "admin" ? { admin: true } : {};
+  const customToken = await admin.auth().createCustomToken(userId, additionalClaims);
+
+  successResponse(res, 200, { customToken }, "Firebase token generated");
+});
+
 // Legacy signup function (for backward compatibility)
 const signup = register;
 
@@ -499,4 +544,5 @@ module.exports = {
   uploadUserImage,
   updateToGoldMember,
   getUserReward,
+  getFirebaseToken,
 };
