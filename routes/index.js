@@ -11,12 +11,18 @@ const miniGameRoutes = require("./miniGame.routes");
 const goldPriceRoutes = require("./goldPrice.routes");
 const notificationRoutes = require("./notification.routes");
 const imageRoutes = require("./image.routes");
+// ── New routes ────────────────────────────────────────────────────────────────
+const contactRoutes = require("./contact.routes");         // POST /contact (public)
+const walletRoutes = require("./wallet.routes");           // /wallet/* (auth required)
+const adminRoutes = require("./admin.routes");             // /admin/* (auth + admin role)
+const { getSpecialOfferMedia } = require("../controllers/specialOfferMedia.controller");
+const { asyncHandler } = require("../utils/response.util");
 
 /**
  * Initialize all routes
  */
 const initRoutes = (app) => {
-  // Mount all routes (no /api prefix - routes are used directly as in original server.js)
+  // ── Existing user-facing routes (unchanged) ──────────────────────────────
   app.use(dishRoutes);
   app.use(categoryRoutes);
   app.use(orderRoutes);
@@ -31,7 +37,20 @@ const initRoutes = (app) => {
   app.use(notificationRoutes);
   app.use(imageRoutes);
 
-  // Health check route
+  // ── New public routes ─────────────────────────────────────────────────────
+  // Contact / catering enquiry form submission
+  app.use(contactRoutes);
+
+  // Wallet (spin wheel + coin redemption) — JWT required inside walletRoutes
+  app.use(walletRoutes);
+
+  // Special offer media — public read so user app can fetch without auth
+  app.get("/special-offer-media", asyncHandler(getSpecialOfferMedia));
+
+  // ── Admin routes (JWT + admin role required — enforced inside adminRoutes) ─
+  app.use("/admin", adminRoutes);
+
+  // ── Root health check ─────────────────────────────────────────────────────
   app.get("/", (req, res) => {
     res.json({ message: "Biryani Darbaar API is running" });
   });
