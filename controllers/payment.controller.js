@@ -1,4 +1,6 @@
 const stripe = require("../config/stripe.config");
+const { db } = require("../config/firebase.config");
+const { COLLECTION_NAMES } = require("../constants");
 const { successResponse, asyncHandler } = require("../utils/response.util");
 const { ValidationError, PaymentError } = require("../utils/errors.util");
 
@@ -18,9 +20,12 @@ const createPaymentIntent = asyncHandler(async (req, res) => {
   }
 
   try {
+    // Convert dollars to cents (Stripe requires smallest currency unit)
+    const amountInCents = Math.round(amount * 100);
+
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount), // Amount in cents, ensure integer
-      currency: currency.toLowerCase(), // e.g., 'usd', 'inr'
+      amount: amountInCents,
+      currency: currency.toLowerCase(), // e.g., 'aud', 'usd'
       metadata: {
         userId: req.user?.userId || "guest",
         timestamp: new Date().toISOString(),
@@ -99,8 +104,60 @@ const getPaymentDetails = asyncHandler(async (req, res) => {
   }
 });
 
+/**
+ * Verify that a Stripe payment succeeded and optionally confirm the linked order
+ */
+const verifyPayment = asyncHandler(async (req, res) => {
+  const { paymentIntentId, orderId } = req.body;
+
+  if (!paymentIntentId) {
+    throw new ValidationError("Payment intent ID is required");
+  }
+
+  try {
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    const verified = paymentIntent.status === "succeeded";
+
+    // If an order ID is provided, keep its status in sync with Stripe
+    if (orderId && verified && req.user?.userId) {
+      const userId = req.user.userId;
+      const updateData = { orderStatus: "confirmed", paymentVerified: true };
+
+      await Promise.all([
+        db
+          .collection(COLLECTION_NAMES.USERS)
+          .doc(userId)
+          .collection(COLLECTION_NAMES.ORDERS)
+          .doc(orderId)
+          .update(updateData),
+        db
+          .collection(COLLECTION_NAMES.ORDER)
+          .doc(orderId)
+          .update(updateData),
+      ]);
+    }
+
+    successResponse(
+      res,
+      200,
+      {
+        verified,
+        status: paymentIntent.status,
+        amount: paymentIntent.amount,
+        currency: paymentIntent.currency,
+      },
+      verified ? "Payment verified" : "Payment not completed"
+    );
+  } catch (stripeError) {
+    throw new PaymentError(
+      stripeError.message || "Failed to verify payment"
+    );
+  }
+});
+
 module.exports = {
   createPaymentIntent,
   confirmPayment,
   getPaymentDetails,
+  verifyPayment,
 };

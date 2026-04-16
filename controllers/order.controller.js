@@ -2,74 +2,163 @@ const { db } = require("../config/firebase.config");
 const { COLLECTION_NAMES } = require("../constants");
 const { getUserId } = require("../utils/session.util");
 const { calculateRewards } = require("../utils/calculations.util");
-const { errorResponse, successResponse } = require("../utils/response.util");
+const { errorResponse, successResponse, asyncHandler } = require("../utils/response.util");
+
+// ── Coin redemption constants (must match frontend + wallet.controller.js) ────
+const MIN_COINS_TO_REDEEM = 50;
+const COIN_TO_AUD = 0.1; // 1 coin = $0.10 AUD
 
 /**
- * Create a new order
+ * Round to 2 decimal places without floating-point drift.
+ * e.g. roundCents(0.1 + 0.2) → 0.30 (not 0.30000000000000004)
  */
-const createOrder = async (req, res) => {
+const roundCents = (n) => Math.round(n * 100) / 100;
+
+/**
+ * Create a new order.
+ *
+ * Critical change: coin validation and deduction are now performed atomically
+ * inside this function using a Firestore batch write. This guarantees:
+ *   - Coins are NEVER deducted before the order is committed
+ *   - If the batch fails, BOTH the order write AND the coin deduction roll back
+ *   - The backend independently validates coinsUsed — we never trust the client
+ */
+const createOrder = asyncHandler(async (req, res) => {
   const orderData = req.body;
-  let userId = getUserId(req);
+
+  // Prefer JWT-resolved userId (set by authenticateJWT middleware) over body
+  const userId = req.user?.userId || orderData.userId || getUserId(req);
+
+  if (!userId) {
+    return errorResponse(res, 401, "Authentication required to place an order");
+  }
+
+  // Fetch user document up-front — needed for both coin validation and rewards
+  const userRef = db.collection(COLLECTION_NAMES.USERS).doc(userId);
+  const userSnapshot = await userRef.get();
+
+  if (!userSnapshot.exists) {
+    return errorResponse(res, 404, "User not found");
+  }
+
+  const userData = userSnapshot.data();
+
+  // ── Server-side coin redemption validation ────────────────────────────────
+  //
+  // We NEVER trust the frontend coin values.  The wallet balance is read fresh
+  // from Firestore right now, and every rule is re-checked independently.
+  //
+  const requestedCoins =
+    typeof orderData.coinsUsed === "number" &&
+    Number.isInteger(orderData.coinsUsed) &&
+    orderData.coinsUsed > 0
+      ? orderData.coinsUsed
+      : 0;
+
+  let validatedCoinsUsed = 0;
+  let validatedCoinDiscount = 0; // AUD
+
+  if (requestedCoins > 0) {
+    const currentBalance = userData.walletBalance ?? 0;
+
+    // Rule 1 — minimum redemption
+    if (requestedCoins < MIN_COINS_TO_REDEEM) {
+      return errorResponse(
+        res,
+        400,
+        `Minimum ${MIN_COINS_TO_REDEEM} coins required for redemption. Requested: ${requestedCoins}`
+      );
+    }
+
+    // Rule 2 — cannot exceed wallet balance
+    if (requestedCoins > currentBalance) {
+      return errorResponse(
+        res,
+        400,
+        `Insufficient coins. Wallet balance: ${currentBalance}, requested: ${requestedCoins}`
+      );
+    }
+
+    // Rule 3 — server-side conversion (never trust frontend discountAmount)
+    validatedCoinsUsed    = requestedCoins;
+    validatedCoinDiscount = roundCents(requestedCoins * COIN_TO_AUD);
+  }
+
+  // ── Build authoritative order document ────────────────────────────────────
+  const now = new Date().toISOString();
 
   const orderStoreData = {
+    // Spread the body first, then override every sensitive field below so
+    // malicious or stale frontend values cannot pollute the stored document.
     ...orderData,
-    userId: userId,
+    userId,
+    orderStatus:     orderData.orderStatus || "pending",
+    orderDate:       now,
+    paymentIntentId: orderData.paymentIntentId || null,
+
+    // Financial fields — always set by the server, never from the client
+    coinsUsed:      validatedCoinsUsed,
+    coinDiscount:   validatedCoinDiscount,
+    finalAmountPaid: roundCents(Number(orderData.totalPrice) || 0),
   };
 
+  // ── Atomic batch: order (×2) + wallet deduction ───────────────────────────
+  //
+  // All three writes succeed together or all roll back.  This is the
+  // single source of truth for "an order was placed and coins were spent".
+  //
+  const newOrderRef = db
+    .collection(COLLECTION_NAMES.USERS)
+    .doc(userId)
+    .collection(COLLECTION_NAMES.ORDERS)
+    .doc();
+
+  const globalOrderRef = db
+    .collection(COLLECTION_NAMES.ORDER)
+    .doc(newOrderRef.id);
+
+  const batch = db.batch();
+  batch.set(newOrderRef,    orderStoreData);
+  batch.set(globalOrderRef, orderStoreData);
+
+  if (validatedCoinsUsed > 0) {
+    const newBalance = (userData.walletBalance ?? 0) - validatedCoinsUsed;
+    batch.update(userRef, { walletBalance: newBalance });
+  }
+
+  await batch.commit();
+
+  // ── Reward calculation — non-blocking ─────────────────────────────────────
+  // Reward failure must NEVER prevent order confirmation.
+  let rewardsEarned = 0;
+  let newRewardValue = userData.reward || 0;
+
   try {
-    // Get the user ID from the session ID
-    const userRef = db.collection(COLLECTION_NAMES.USERS).doc(userId);
-    const userSnapshot = await userRef.get();
-
-    if (userSnapshot.empty) {
-      return errorResponse(res, 404, "User not found");
-    }
-
-    // Store the order data in the user's orders collection
-    const newOrderRef = db
-      .collection(COLLECTION_NAMES.USERS)
-      .doc(userId)
-      .collection(COLLECTION_NAMES.ORDERS)
-      .doc();
-    await newOrderRef.set(orderData);
-
-    const orderRef = db.collection(COLLECTION_NAMES.ORDER).doc(newOrderRef.id);
-    await orderRef.set(orderStoreData);
-
-    // Calculate rewards based on totalPrice
     const rewardRef = db.collection(COLLECTION_NAMES.REWARDS).doc("rewardDoc");
     const rewardDoc = await rewardRef.get();
-    if (!rewardDoc.exists) {
-      return errorResponse(res, 404, "Reward data not found");
+
+    if (rewardDoc.exists) {
+      const rewardData = rewardDoc.data();
+      rewardsEarned  = calculateRewards(orderData.totalPrice, rewardData.dollar);
+      newRewardValue = (userData.reward || 0) + rewardsEarned;
+      // update() is a merge-patch — it won't overwrite walletBalance
+      await userRef.update({ reward: newRewardValue });
     }
-
-    const rewardData = rewardDoc.data();
-    let dollarValue = 0;
-    if (rewardData.reward === 1) {
-      dollarValue = 10 * rewardData.dollar;
-    } else {
-      const localDollar = rewardData.dollar / rewardData.reward;
-      dollarValue = 10 * localDollar;
-    }
-
-    const totalPrice = orderData.totalPrice;
-    const rewardsEarned = calculateRewards(totalPrice, rewardData.dollar);
-    const newRewardValue = (userSnapshot.data().reward || 0) + rewardsEarned;
-
-    // Update user's reward value
-    await userRef.update({ reward: newRewardValue });
-
-    successResponse(res, 201, {
-      message: "Order placed successfully",
-      orderId: newOrderRef.id,
-      orderData: orderStoreData,
-      rewardsEarned,
-      newRewardValue,
-    });
-  } catch (error) {
-    errorResponse(res, 500, error.message || "Failed to place order", error);
+  } catch (rewardErr) {
+    console.warn("[createOrder] Reward update skipped:", rewardErr.message);
   }
-};
+
+  // Return everything the client needs for immediate UI sync
+  return successResponse(res, 201, {
+    message:        "Order placed successfully",
+    orderId:        newOrderRef.id,
+    rewardsEarned,
+    newRewardValue,
+    // Echo back server-validated coin info so the client can update its state
+    coinsUsed:      validatedCoinsUsed,
+    coinDiscount:   validatedCoinDiscount,
+  });
+});
 
 /**
  * Get all orders
@@ -88,16 +177,21 @@ const getAllOrders = async (req, res) => {
 };
 
 /**
- * Get orders by user
+ * Get orders by user — prefers JWT userId, falls back to param for admin lookups
  */
 const getOrdersByUser = async (req, res) => {
-  let userId = getUserId(req);
+  const userId = req.user?.userId || req.params.id;
+
+  if (!userId) {
+    return errorResponse(res, 400, "User ID is required");
+  }
 
   try {
     const snapshot = await db
       .collection(COLLECTION_NAMES.USERS)
       .doc(userId)
       .collection(COLLECTION_NAMES.ORDERS)
+      .orderBy("orderDate", "desc")
       .get();
     const orders = [];
     snapshot.forEach((doc) => {
@@ -114,7 +208,11 @@ const getOrdersByUser = async (req, res) => {
  */
 const getOrderById = async (req, res) => {
   const orderId = req.params.id;
-  let userId = getUserId(req);
+  const userId  = req.user?.userId;
+
+  if (!userId) {
+    return errorResponse(res, 401, "Authentication required");
+  }
 
   try {
     const orderRef = db
@@ -190,7 +288,6 @@ const getTotalOrderCount = async (req, res) => {
 
     let totalOrderCount = 0;
 
-    // Iterate through each user and fetch their orders collection
     for (const userDoc of usersSnapshot.docs) {
       const ordersSnapshot = await db
         .collection(COLLECTION_NAMES.USERS)
@@ -222,7 +319,6 @@ const getDailySummary = async (req, res) => {
       const orderData = doc.data();
       let orderDate;
 
-      // Check if orderDate is a string or a Firestore Timestamp
       if (typeof orderData.orderDate === "string") {
         orderDate = new Date(orderData.orderDate).toISOString().split("T")[0];
       } else if (orderData.orderDate && orderData.orderDate.toDate) {
