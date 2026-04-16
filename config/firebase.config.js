@@ -1,9 +1,15 @@
-require("dotenv").config();
-const admin = require("firebase-admin");
-const { getStorage } = require("firebase-admin/storage");
-const path = require("path");
+// NOTE: dotenv is loaded by index.js BEFORE this module is required, so
+// process.env is already populated with the correct .env.<NODE_ENV> values.
+// The call here is kept only as a safety net for scripts that require this
+// file directly (e.g. seed scripts run outside index.js).
+require("dotenv").config({
+  path: `.env.${process.env.NODE_ENV || "development"}`,
+});
 
-// Load service account from file path specified in env or use default
+const admin = require("firebase-admin");
+const path  = require("path");
+
+// ── Service account ───────────────────────────────────────────────────────────
 const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH
   ? path.resolve(__dirname, process.env.FIREBASE_SERVICE_ACCOUNT_PATH)
   : path.resolve(__dirname, "../serviceAccountKey.json");
@@ -11,29 +17,27 @@ const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH
 let serviceAccount;
 try {
   serviceAccount = require(serviceAccountPath);
-} catch (error) {
+} catch (err) {
   console.error(
-    "ERROR: Could not load Firebase service account key from:",
-    serviceAccountPath
-  );
-  console.error(
-    "Please ensure the file exists and FIREBASE_SERVICE_ACCOUNT_PATH is set correctly"
+    "❌  Could not load Firebase service account key from:",
+    serviceAccountPath,
+    "\n   Ensure the file exists and FIREBASE_SERVICE_ACCOUNT_PATH is set correctly."
   );
   process.exit(1);
 }
 
-if (!process.env.FIREBASE_STORAGE_BUCKET) {
-  console.warn(
-    "WARNING: FIREBASE_STORAGE_BUCKET is not set, using default from service account"
-  );
+// ── App initialisation ────────────────────────────────────────────────────────
+// Guard against double-init when nodemon hot-reloads modules.
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    // Firebase Storage is NOT used — images are stored on local disk.
+    // See utils/storage.util.js for the local-storage implementation.
+  });
 }
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-});
-
 const db = admin.firestore();
-const bucket = getStorage().bucket();
 
-module.exports = { admin, db, bucket };
+// NOTE: `bucket` is intentionally not exported.
+// All file I/O goes through utils/storage.util.js (local disk).
+module.exports = { admin, db };
