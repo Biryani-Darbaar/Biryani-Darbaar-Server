@@ -5,7 +5,17 @@ const { authenticateJWT } = require("../middlewares");
 
 // Order routes - All require authentication
 router.post("/orders", authenticateJWT, orderController.createOrder);
-router.get("/orders", authenticateJWT, orderController.getAllOrders);
+// GET /orders — returns orders for the authenticated user (JWT-resolved)
+router.get("/orders", authenticateJWT, orderController.getOrdersByUser);
+// GET /orders/admin — admin-only view of all orders across all users
+router.get("/orders/admin", authenticateJWT, orderController.getAllOrders);
+// Static routes MUST be declared before parameterised routes to avoid being
+// swallowed by the :id wildcard.
+router.get(
+  "/orders/total-count",
+  authenticateJWT,
+  orderController.getTotalOrderCount
+);
 router.get(
   "/ordersByUser/:id",
   authenticateJWT,
@@ -17,11 +27,6 @@ router.patch(
   "/ordersAdmin/:id",
   authenticateJWT,
   orderController.updateOrderStatusAdmin
-);
-router.get(
-  "/orders/total-count",
-  authenticateJWT,
-  orderController.getTotalOrderCount
 );
 
 // Order status update endpoint (alternative route)

@@ -14,6 +14,12 @@ router.post(
   authenticateJWT,
   paymentController.confirmPayment
 );
+// Verify a completed payment and optionally mark the linked order as confirmed
+router.post(
+  "/verify-payment",
+  authenticateJWT,
+  paymentController.verifyPayment
+);
 router.get(
   "/payment/:paymentIntentId",
   authenticateJWT,
