@@ -16,6 +16,9 @@ const COLLECTION_NAMES = {
   REWARDS: "rewards",
   NOTIFICATIONS: "notifications",
   USER_TOKENS: "userTokens",
+  // Admin / new features
+  CONTACT_RESPONSES: "contactResponses",
+  SPECIAL_OFFER_MEDIA: "specialOfferMedia",
 };
 
 const MAX_MINI_GAMES = parseInt(process.env.MAX_MINI_GAMES)
