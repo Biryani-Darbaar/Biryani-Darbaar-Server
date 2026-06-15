@@ -19,12 +19,31 @@ const ALLOWED_MIME_TYPES = [
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 
+// ── In-process cache for the public media list ────────────────────────────────
+// The list only changes when an admin uploads, deletes, or reorders — cache is
+// invalidated on every write operation so users see changes within seconds.
+let _mediaCache   = null;
+let _mediaCacheTs = 0;
+const MEDIA_TTL_MS = 60 * 1000; // 60 seconds
+
+const invalidateMediaCache = () => {
+  _mediaCache   = null;
+  _mediaCacheTs = 0;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * PUBLIC — GET /special-offer-media
  * Returns the ordered list of media items for the user-facing app.
  */
 const getSpecialOfferMedia = async (req, res) => {
   try {
+    const now = Date.now();
+    if (_mediaCache && now - _mediaCacheTs < MEDIA_TTL_MS) {
+      return successResponse(res, 200, { media: _mediaCache, total: _mediaCache.length });
+    }
+
     const snap = await db
       .collection(COLLECTION_NAMES.SPECIAL_OFFER_MEDIA)
       .orderBy("order", "asc")
@@ -35,6 +54,9 @@ const getSpecialOfferMedia = async (req, res) => {
       ...d.data(),
       uploadedAt: d.data().uploadedAt?.toDate?.()?.toISOString() ?? null,
     }));
+
+    _mediaCache   = media;
+    _mediaCacheTs = now;
 
     return successResponse(res, 200, { media, total: media.length });
   } catch (error) {
@@ -49,15 +71,13 @@ const getSpecialOfferMedia = async (req, res) => {
  */
 const uploadMedia = async (req, res) => {
   try {
-    // Validate file presence
     if (!req.file) {
       return errorResponse(res, 400, "No file provided. Please upload an image or video.");
     }
 
-    const { mimetype, size, originalname, buffer } = req.file;
+    const { mimetype, size, originalname } = req.file;
     const { title = "" } = req.body;
 
-    // Validate MIME type
     if (!ALLOWED_MIME_TYPES.includes(mimetype)) {
       return errorResponse(
         res,
@@ -66,7 +86,6 @@ const uploadMedia = async (req, res) => {
       );
     }
 
-    // Validate file size
     if (size > MAX_FILE_SIZE_BYTES) {
       return errorResponse(
         res,
@@ -75,7 +94,6 @@ const uploadMedia = async (req, res) => {
       );
     }
 
-    // Enforce max 3 items
     const countSnap = await db
       .collection(COLLECTION_NAMES.SPECIAL_OFFER_MEDIA)
       .count()
@@ -89,13 +107,11 @@ const uploadMedia = async (req, res) => {
       );
     }
 
-    // Determine media type
     const mediaType = mimetype.startsWith("video/") ? "video" : "image";
 
-    // Upload to Firebase Storage under 'special-offers/' folder
+    // Write to local disk: public/assets/special-offers/{timestamp}-{filename}
     const url = await uploadFile(req.file, "special-offers", originalname);
 
-    // Determine next order number
     const existing = await db
       .collection(COLLECTION_NAMES.SPECIAL_OFFER_MEDIA)
       .orderBy("order", "desc")
@@ -104,26 +120,27 @@ const uploadMedia = async (req, res) => {
 
     const nextOrder = existing.empty ? 1 : (existing.docs[0].data().order || 0) + 1;
 
-    // Save metadata to Firestore
     const docRef = await db.collection(COLLECTION_NAMES.SPECIAL_OFFER_MEDIA).add({
       url,
-      type: mediaType,
-      title: title.trim() || originalname,
-      fileName: originalname,
-      mimeType: mimetype,
-      sizeBytes: size,
-      order: nextOrder,
+      type:       mediaType,
+      title:      title.trim() || originalname,
+      fileName:   originalname,
+      mimeType:   mimetype,
+      sizeBytes:  size,
+      order:      nextOrder,
       uploadedAt: admin.firestore.FieldValue.serverTimestamp(),
       uploadedBy: req.user?.userId || "admin",
     });
+
+    invalidateMediaCache();
 
     return successResponse(
       res,
       201,
       {
-        id: docRef.id,
+        id:    docRef.id,
         url,
-        type: mediaType,
+        type:  mediaType,
         title: title.trim() || originalname,
         order: nextOrder,
       },
@@ -137,14 +154,14 @@ const uploadMedia = async (req, res) => {
 
 /**
  * ADMIN — DELETE /admin/special-offer-media/:id
- * Deletes the Firestore document and the file from Firebase Storage.
+ * Deletes the Firestore document and the file from local disk.
  */
 const deleteMedia = async (req, res) => {
   try {
     const { id } = req.params;
 
     const docRef = db.collection(COLLECTION_NAMES.SPECIAL_OFFER_MEDIA).doc(id);
-    const doc = await docRef.get();
+    const doc    = await docRef.get();
 
     if (!doc.exists) {
       return errorResponse(res, 404, "Media item not found");
@@ -152,16 +169,16 @@ const deleteMedia = async (req, res) => {
 
     const { url } = doc.data();
 
-    // Delete from Firebase Storage
+    // Delete the physical file from local disk (non-blocking — stale refs are harmless)
     try {
       await deleteFile(url);
     } catch (storageErr) {
-      // Log but don't block deletion of Firestore record
-      console.warn("Could not delete file from Storage:", storageErr.message);
+      console.warn("Could not delete file from disk:", storageErr.message);
     }
 
-    // Delete from Firestore
     await docRef.delete();
+
+    invalidateMediaCache();
 
     return successResponse(res, 200, { id }, "Media deleted successfully");
   } catch (error) {
@@ -173,7 +190,6 @@ const deleteMedia = async (req, res) => {
 /**
  * ADMIN — PUT /admin/special-offer-media/reorder
  * Body: { items: [{ id, order }] }
- * Updates the display order of media items.
  */
 const reorderMedia = async (req, res) => {
   try {
@@ -192,6 +208,8 @@ const reorderMedia = async (req, res) => {
     }
 
     await batch.commit();
+
+    invalidateMediaCache();
 
     return successResponse(res, 200, null, "Media order updated successfully");
   } catch (error) {

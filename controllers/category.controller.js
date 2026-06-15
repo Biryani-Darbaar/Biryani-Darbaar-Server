@@ -3,44 +3,51 @@ const { COLLECTION_NAMES } = require("../constants");
 const { deleteFile } = require("../utils/storage.util");
 const { errorResponse, successResponse } = require("../utils/response.util");
 
+// ── In-process cache for the category list ────────────────────────────────────
+// Categories rarely change (admin action required), so a 5-minute TTL is safe.
+// This eliminates a full Firestore collection scan on every page load.
+let _categoryCache   = null;
+let _categoryCacheTs = 0;
+const CATEGORY_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+const invalidateCategoryCache = () => {
+  _categoryCache   = null;
+  _categoryCacheTs = 0;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
- * Get all categories
+ * GET /categories
+ * Returns the list of all category names, served from cache when possible.
  */
 const getCategories = async (req, res) => {
   try {
-    const categoriesSnapshot = await db
-      .collection(COLLECTION_NAMES.CATEGORY)
-      .get();
-    const categories = [];
-
-    categoriesSnapshot.forEach((doc) => {
-      // Use the 'name' field if available, otherwise use the document ID
-      const categoryName = doc.data().name || doc.id;
-      categories.push(categoryName);
-    });
-
-    successResponse(res, 200, categories);
-  } catch (error) {
-    if (error.code === 16) {
-      // Firestore UNAUTHENTICATED error
-      console.error(
-        "Authentication error: Ensure valid Firebase credentials.",
-        error
-      );
-      return errorResponse(
-        res,
-        401,
-        "Authentication error: Invalid Firebase credentials."
-      );
+    const now = Date.now();
+    if (_categoryCache && now - _categoryCacheTs < CATEGORY_TTL_MS) {
+      return successResponse(res, 200, _categoryCache);
     }
 
+    const snapshot = await db.collection(COLLECTION_NAMES.CATEGORY).get();
+    const categories = snapshot.docs.map((doc) => doc.data().name || doc.id);
+
+    _categoryCache   = categories;
+    _categoryCacheTs = now;
+
+    return successResponse(res, 200, categories);
+  } catch (error) {
+    if (error.code === 16) {
+      console.error("Authentication error: Ensure valid Firebase credentials.", error);
+      return errorResponse(res, 401, "Authentication error: Invalid Firebase credentials.");
+    }
     console.error("Failed to fetch categories:", error);
-    errorResponse(res, 500, "Failed to fetch categories", error);
+    return errorResponse(res, 500, "Failed to fetch categories", error);
   }
 };
 
 /**
- * Create a new category
+ * POST /admin/dishes/categories
+ * Creates a new category and invalidates the cache.
  */
 const createCategory = async (req, res) => {
   const { name } = req.body;
@@ -50,7 +57,6 @@ const createCategory = async (req, res) => {
   }
 
   try {
-    // Check if the category already exists
     const categoryRef = db.collection(COLLECTION_NAMES.CATEGORY).doc(name);
     const doc = await categoryRef.get();
 
@@ -58,26 +64,27 @@ const createCategory = async (req, res) => {
       return errorResponse(res, 409, "Category already exists");
     }
 
-    // Add new category to Firestore
-    // Store both 'name' field and ensure document ID is the category name
-    await categoryRef.set({ 
+    await categoryRef.set({
       name,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
 
-    successResponse(res, 201, {
-      message: "Category created successfully",
-      categoryId: name,
+    invalidateCategoryCache();
+
+    return successResponse(res, 201, {
+      message:      "Category created successfully",
+      categoryId:   name,
       categoryName: name,
     });
   } catch (error) {
-    errorResponse(res, 500, "Internal server error", error);
+    return errorResponse(res, 500, "Internal server error", error);
   }
 };
 
 /**
- * Delete a category
+ * DELETE /admin/dishes/categories/:category
+ * Deletes a category (and all its dishes) and invalidates the cache.
  */
 const deleteCategory = async (req, res) => {
   const { category } = req.params;
@@ -85,37 +92,28 @@ const deleteCategory = async (req, res) => {
   try {
     const categoryRef = db.collection(COLLECTION_NAMES.CATEGORY).doc(category);
 
-    // Get all dishes associated with the category
     const dishesSnapshot = await categoryRef
       .collection(COLLECTION_NAMES.DISHES)
       .get();
 
-    // Loop through the dishes and delete them
     const deletePromises = [];
     dishesSnapshot.forEach((dishDoc) => {
       const dishData = dishDoc.data();
       const imageUrl = dishData.image;
-
-      // Delete the dish document
       deletePromises.push(dishDoc.ref.delete());
-
-      // If an image URL exists, delete the image from Firebase Storage
-      if (imageUrl) {
-        deletePromises.push(deleteFile(imageUrl));
-      }
+      if (imageUrl) deletePromises.push(deleteFile(imageUrl));
     });
 
-    // Wait for all deletes to complete
     await Promise.all(deletePromises);
-
-    // Finally, delete the category document itself
     await categoryRef.delete();
 
-    successResponse(res, 200, {
+    invalidateCategoryCache();
+
+    return successResponse(res, 200, {
       message: "Category and associated dishes deleted successfully",
     });
   } catch (error) {
-    errorResponse(res, 500, "Failed to delete category", error);
+    return errorResponse(res, 500, "Failed to delete category", error);
   }
 };
 

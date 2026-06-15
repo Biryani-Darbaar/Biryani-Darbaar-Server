@@ -2,6 +2,34 @@ const { db } = require("../config/firebase.config");
 const { COLLECTION_NAMES } = require("../constants");
 const { successResponse, errorResponse } = require("../utils/response.util");
 
+// ── In-process caches ─────────────────────────────────────────────────────────
+//
+// getDashboardStats reads ALL users + ALL orders on every call.  A 60-second
+// cache turns 2 per-admin-user/minute into at most 1 per server/minute.
+//
+// getAllOrdersAdmin is polled every 30 s from the admin Orders page.  A 15-second
+// cache means even with multiple admin sessions we do at most 4 Firestore reads
+// per minute regardless of how many admins are open.
+//
+// updateOrderStatusAdmin explicitly invalidates both caches so the next poll
+// always reflects the latest status change.
+
+let _dashCache   = null;
+let _dashCacheTs = 0;
+const DASH_TTL_MS = 60 * 1000; // 60 seconds
+
+// Orders cache is keyed by the serialised query params string
+const _ordersCache = new Map(); // key → { data, ts }
+const ORDERS_TTL_MS = 15 * 1000; // 15 seconds
+
+const invalidateAdminCaches = () => {
+  _dashCache   = null;
+  _dashCacheTs = 0;
+  _ordersCache.clear();
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * Helper: get Firestore Timestamp N days ago
  */
@@ -18,6 +46,12 @@ const daysAgo = (n) => {
  */
 const getDashboardStats = async (req, res) => {
   try {
+    // Serve from cache when fresh (bypass with ?refresh=1 for manual override)
+    const now = Date.now();
+    if (_dashCache && now - _dashCacheTs < DASH_TTL_MS && req.query.refresh !== "1") {
+      return successResponse(res, 200, _dashCache);
+    }
+
     // ── 1. Total users ────────────────────────────────────────────────────────
     const usersSnap = await db.collection(COLLECTION_NAMES.USERS).get();
     const totalUsers = usersSnap.size;
@@ -108,7 +142,7 @@ const getDashboardStats = async (req, res) => {
       })
       .slice(0, 10);
 
-    return successResponse(res, 200, {
+    const result = {
       totalUsers,
       totalOrders,
       totalRevenue: Math.round(totalRevenue * 100) / 100,
@@ -118,7 +152,12 @@ const getDashboardStats = async (req, res) => {
       monthlyData,
       statusBreakdown,
       recentOrders,
-    });
+    };
+
+    _dashCache   = result;
+    _dashCacheTs = Date.now();
+
+    return successResponse(res, 200, result);
   } catch (error) {
     console.error("getDashboardStats error:", error);
     return errorResponse(res, 500, "Failed to fetch dashboard stats", error);
@@ -177,6 +216,14 @@ const getAllOrdersAdmin = async (req, res) => {
   try {
     const { status, userId, dateFrom, dateTo, limit = 100 } = req.query;
 
+    // Cache key encodes the full query so different filter combos don't collide
+    const cacheKey = JSON.stringify({ status, userId, dateFrom, dateTo, limit });
+    const now      = Date.now();
+    const cached   = _ordersCache.get(cacheKey);
+    if (cached && now - cached.ts < ORDERS_TTL_MS) {
+      return successResponse(res, 200, cached.data);
+    }
+
     let query = db.collection(COLLECTION_NAMES.ORDER).orderBy("orderDate", "desc");
 
     if (status) query = query.where("orderStatus", "==", status);
@@ -197,7 +244,10 @@ const getAllOrdersAdmin = async (req, res) => {
       orders = orders.filter((o) => o.orderDate && new Date(o.orderDate) <= to);
     }
 
-    return successResponse(res, 200, { orders, total: orders.length });
+    const data = { orders, total: orders.length };
+    _ordersCache.set(cacheKey, { data, ts: now });
+
+    return successResponse(res, 200, data);
   } catch (error) {
     console.error("getAllOrdersAdmin error:", error);
     return errorResponse(res, 500, "Failed to fetch orders", error);
@@ -262,6 +312,9 @@ const updateOrderStatusAdmin = async (req, res) => {
     }
 
     await batch.commit();
+
+    // Invalidate both caches so the next poll returns the fresh status
+    invalidateAdminCaches();
 
     return successResponse(res, 200, { id, orderStatus }, "Order status updated successfully");
   } catch (error) {

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Backend (Express/Nodemon)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5000
+    },
+    {
+      "name": "Frontend (React/Vite)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "Biryani-Darbaar-Web", "run", "dev"],
+      "port": 5173
+    }
+  ]
+}

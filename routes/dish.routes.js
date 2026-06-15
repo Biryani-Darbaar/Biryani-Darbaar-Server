@@ -2,10 +2,15 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../config/multer.config");
 const dishController = require("../controllers/dish.controller");
+const { optionalAuthenticate } = require("../middlewares/auth.middleware");
 
 // Dish routes
 router.post("/dishes", upload.single("image"), dishController.addDish);
-router.get("/dishes/category/:category", dishController.getDishesByCategory);
+
+// optionalAuthenticate: processes the JWT when present (sets req.user) but never
+// blocks unauthenticated requests.  The controller uses req.user?.userId to apply
+// gold-member pricing without reading from any server-global storage.
+router.get("/dishes/category/:category", optionalAuthenticate, dishController.getDishesByCategory);
 router.get("/dishes/:cat", dishController.getAllDishes);
 router.put(
   "/dishes/:category/:id",

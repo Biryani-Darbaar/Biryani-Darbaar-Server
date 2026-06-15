@@ -31,7 +31,8 @@ const router = express.Router();
 
 // ── Middleware ────────────────────────────────────────────────────────────────
 const { authenticateJWT, requireAdmin } = require("../middlewares/auth.middleware");
-const upload = require("../config/multer.config");   // multer instance
+const upload      = require("../config/multer.config");              // standard image upload
+const { videoUpload } = require("../config/multer.config");          // 52 MB cap for video/media
 
 // ── Controllers ───────────────────────────────────────────────────────────────
 const {
@@ -104,7 +105,7 @@ router.delete("/dishes/:category/:id", asyncHandler(deleteDish));
 // NOTE: /reorder must come BEFORE /:id to avoid treating "reorder" as an id
 router.put("/special-offer-media/reorder", asyncHandler(reorderMedia));
 router.get("/special-offer-media", asyncHandler(getSpecialOfferMedia));
-router.post("/special-offer-media", upload.single("media"), asyncHandler(uploadMedia));
+router.post("/special-offer-media", videoUpload.single("media"), asyncHandler(uploadMedia));
 router.delete("/special-offer-media/:id", asyncHandler(deleteMedia));
 
 // ── Contact / Catering Responses ──────────────────────────────────────────────

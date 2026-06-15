@@ -124,18 +124,24 @@ const addDish = asyncHandler(async (req, res) => {
  */
 const getDishesByCategory = asyncHandler(async (req, res) => {
   const category = req.params.category;
-  const userId = getUserId(req);
 
-  let user = null;
+  // ONLY use the JWT-authenticated userId (set by optionalAuthenticate middleware).
+  // We deliberately never read from the legacy session.util global — that utility
+  // uses a server-level singleton that leaks the last logged-in user's ID into
+  // every concurrent request, causing spurious Firestore reads and wrong pricing.
+  const userId = req.user?.userId || null;
 
-  // Fetch user data if userId exists
+  let isGoldMember = false;
+
   if (userId) {
-    const userRef = db.collection(COLLECTION_NAMES.USERS).doc(userId);
-    const userSnapshot = await userRef.get();
-    if (!userSnapshot.exists) {
-      throw new NotFoundError("User");
+    try {
+      const userSnapshot = await db.collection(COLLECTION_NAMES.USERS).doc(userId).get();
+      if (userSnapshot.exists) {
+        isGoldMember = userSnapshot.data()?.goldMember === true;
+      }
+    } catch {
+      // Non-fatal: fall back to regular pricing if Firestore is temporarily unavailable
     }
-    user = userSnapshot.data();
   }
 
   // Find category by name (handles both doc ID and name field matching)
@@ -156,9 +162,9 @@ const getDishesByCategory = asyncHandler(async (req, res) => {
   dishesSnapshot.forEach((doc) => {
     const dish = doc.data();
     if (dish.available) {
-      if (userId && user?.goldMember) {
+      if (isGoldMember) {
         const { goldPrice, ...rest } = dish;
-        dishes.push({ dishId: doc.id, ...rest, price: goldPrice });
+        dishes.push({ dishId: doc.id, ...rest, price: goldPrice ?? rest.price });
       } else {
         const { goldPrice, ...rest } = dish;
         dishes.push({ dishId: doc.id, ...rest });

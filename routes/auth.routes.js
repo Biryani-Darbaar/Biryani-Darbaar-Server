@@ -22,6 +22,9 @@ router.post(
   authController.changePassword
 );
 
+// Firebase custom token for real-time Firestore listeners (order tracking)
+router.get("/auth/firebase-token", authenticateJWT, authController.getFirebaseToken);
+
 // User routes
 router.get("/user/:id", authController.getUserById);
 router.put("/user/:id", authenticateJWT, authController.updateUser);
