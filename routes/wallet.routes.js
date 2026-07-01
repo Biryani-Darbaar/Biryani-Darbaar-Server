@@ -15,11 +15,8 @@ const { authenticateJWT }            = require("../middlewares/auth.middleware")
 const { getWallet, spinWheel, redeemCoins } = require("../controllers/wallet.controller");
 const { asyncHandler }               = require("../utils/response.util");
 
-// Every wallet route requires authentication
-router.use(authenticateJWT);
-
-router.get("/wallet",        asyncHandler(getWallet));
-router.post("/wallet/spin",  asyncHandler(spinWheel));
-router.post("/wallet/redeem", asyncHandler(redeemCoins));
+router.get("/wallet",         authenticateJWT, asyncHandler(getWallet));
+router.post("/wallet/spin",   authenticateJWT, asyncHandler(spinWheel));
+router.post("/wallet/redeem", authenticateJWT, asyncHandler(redeemCoins));
 
 module.exports = router;
