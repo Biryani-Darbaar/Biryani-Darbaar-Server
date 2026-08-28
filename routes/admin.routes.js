@@ -17,10 +17,14 @@
  *  POST   /admin/dishes                          – add new dish (multipart/form-data)
  *  PUT    /admin/dishes/:category/:id            – update dish (multipart/form-data)
  *  DELETE /admin/dishes/:category/:id            – delete dish
- *  GET    /admin/special-offer-media             – list all media items
- *  POST   /admin/special-offer-media             – upload new media (multipart/form-data)
+ *  GET    /admin/special-offer-media             – list all special-offer media items
+ *  POST   /admin/special-offer-media             – upload new special-offer media (multipart/form-data)
  *  DELETE /admin/special-offer-media/:id         – delete media item
- *  PUT    /admin/special-offer-media/reorder     – reorder media items
+ *  PUT    /admin/special-offer-media/reorder     – reorder special-offer media items
+ *  GET    /admin/menu-media                      – list all menu media items
+ *  POST   /admin/menu-media                      – upload new menu media (multipart/form-data)
+ *  DELETE /admin/menu-media/:id                  – delete media item
+ *  PUT    /admin/menu-media/reorder              – reorder menu media items
  *  GET    /admin/contact-responses               – list all contact/catering responses
  *  PATCH  /admin/contact-responses/:id/read      – mark response as read
  *  DELETE /admin/contact-responses/:id           – delete response
@@ -46,11 +50,12 @@ const {
 const { updateUserWallet } = require("../controllers/wallet.controller");
 
 const {
-  getSpecialOfferMedia,
+  SECTIONS,
+  getMediaList,
   uploadMedia,
   deleteMedia,
   reorderMedia,
-} = require("../controllers/specialOfferMedia.controller");
+} = require("../controllers/media.controller");
 
 const {
   getContactResponses,
@@ -104,9 +109,15 @@ router.delete("/dishes/:category/:id", asyncHandler(deleteDish));
 // ── Special Offer Media ───────────────────────────────────────────────────────
 // NOTE: /reorder must come BEFORE /:id to avoid treating "reorder" as an id
 router.put("/special-offer-media/reorder", asyncHandler(reorderMedia));
-router.get("/special-offer-media", asyncHandler(getSpecialOfferMedia));
-router.post("/special-offer-media", videoUpload.single("media"), asyncHandler(uploadMedia));
+router.get("/special-offer-media", asyncHandler(getMediaList(SECTIONS.SPECIAL_OFFER)));
+router.post("/special-offer-media", videoUpload.single("media"), asyncHandler(uploadMedia(SECTIONS.SPECIAL_OFFER)));
 router.delete("/special-offer-media/:id", asyncHandler(deleteMedia));
+
+// ── Menu Media ────────────────────────────────────────────────────────────────
+router.put("/menu-media/reorder", asyncHandler(reorderMedia));
+router.get("/menu-media", asyncHandler(getMediaList(SECTIONS.MENU)));
+router.post("/menu-media", videoUpload.single("media"), asyncHandler(uploadMedia(SECTIONS.MENU)));
+router.delete("/menu-media/:id", asyncHandler(deleteMedia));
 
 // ── Contact / Catering Responses ──────────────────────────────────────────────
 router.get("/contact-responses", asyncHandler(getContactResponses));

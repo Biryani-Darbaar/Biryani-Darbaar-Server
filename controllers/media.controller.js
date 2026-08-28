@@ -4,7 +4,16 @@ const { COLLECTION_NAMES } = require("../constants");
 const { uploadFile, deleteFile } = require("../utils/storage.util");
 const { successResponse, errorResponse } = require("../utils/response.util");
 
-const MAX_MEDIA_ITEMS = 3;
+// Shared media collection — items are distinguished by a "section" field so
+// Special Offer media (Home / /SpecialOffer carousel) and Menu media
+// (/Menu carousel) can be managed independently while reusing the same
+// upload/reorder/delete plumbing.
+const SECTIONS = {
+  SPECIAL_OFFER: "special-offer",
+  MENU: "menu",
+};
+
+const MAX_MEDIA_ITEMS = 20;
 
 const ALLOWED_MIME_TYPES = [
   "image/jpeg",
@@ -19,57 +28,61 @@ const ALLOWED_MIME_TYPES = [
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 
-// ── In-process cache for the public media list ────────────────────────────────
+// ── In-process cache for the public media list, keyed by section ─────────────
 // The list only changes when an admin uploads, deletes, or reorders — cache is
 // invalidated on every write operation so users see changes within seconds.
-let _mediaCache   = null;
-let _mediaCacheTs = 0;
+const _cache = {}; // { [section]: { data, ts } }
 const MEDIA_TTL_MS = 60 * 1000; // 60 seconds
 
-const invalidateMediaCache = () => {
-  _mediaCache   = null;
-  _mediaCacheTs = 0;
+const invalidateMediaCache = (section) => {
+  if (section) delete _cache[section];
+  else Object.keys(_cache).forEach((key) => delete _cache[key]);
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * PUBLIC — GET /special-offer-media
- * Returns the ordered list of media items for the user-facing app.
+ * PUBLIC/ADMIN — GET /special-offer-media | /menu-media
+ * Returns the ordered list of media items for the given section.
+ *
+ * NOTE: queries filter by "section" only (no orderBy) and sort in memory —
+ * this avoids requiring a Firestore composite index for section+order.
  */
-const getSpecialOfferMedia = async (req, res) => {
+const getMediaList = (section) => async (req, res) => {
   try {
     const now = Date.now();
-    if (_mediaCache && now - _mediaCacheTs < MEDIA_TTL_MS) {
-      return successResponse(res, 200, { media: _mediaCache, total: _mediaCache.length });
+    const cached = _cache[section];
+    if (cached && now - cached.ts < MEDIA_TTL_MS) {
+      return successResponse(res, 200, { media: cached.data, total: cached.data.length });
     }
 
     const snap = await db
       .collection(COLLECTION_NAMES.SPECIAL_OFFER_MEDIA)
-      .orderBy("order", "asc")
+      .where("section", "==", section)
       .get();
 
-    const media = snap.docs.map((d) => ({
-      id: d.id,
-      ...d.data(),
-      uploadedAt: d.data().uploadedAt?.toDate?.()?.toISOString() ?? null,
-    }));
+    const media = snap.docs
+      .map((d) => ({
+        id: d.id,
+        ...d.data(),
+        uploadedAt: d.data().uploadedAt?.toDate?.()?.toISOString() ?? null,
+      }))
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
 
-    _mediaCache   = media;
-    _mediaCacheTs = now;
+    _cache[section] = { data: media, ts: now };
 
     return successResponse(res, 200, { media, total: media.length });
   } catch (error) {
-    console.error("getSpecialOfferMedia error:", error);
-    return errorResponse(res, 500, "Failed to fetch special offer media", error);
+    console.error("getMediaList error:", error);
+    return errorResponse(res, 500, "Failed to fetch media", error);
   }
 };
 
 /**
- * ADMIN — POST /admin/special-offer-media
- * Upload a new media file. Enforces MAX_MEDIA_ITEMS limit.
+ * ADMIN — POST /admin/special-offer-media | /admin/menu-media
+ * Upload a new media file. Enforces MAX_MEDIA_ITEMS limit per section.
  */
-const uploadMedia = async (req, res) => {
+const uploadMedia = (section) => async (req, res) => {
   try {
     if (!req.file) {
       return errorResponse(res, 400, "No file provided. Please upload an image or video.");
@@ -94,31 +107,30 @@ const uploadMedia = async (req, res) => {
       );
     }
 
-    const countSnap = await db
+    const existingSnap = await db
       .collection(COLLECTION_NAMES.SPECIAL_OFFER_MEDIA)
-      .count()
+      .where("section", "==", section)
       .get();
 
-    if (countSnap.data().count >= MAX_MEDIA_ITEMS) {
+    if (existingSnap.size >= MAX_MEDIA_ITEMS) {
       return errorResponse(
         res,
         400,
-        `Maximum of ${MAX_MEDIA_ITEMS} special offer media items allowed. Please delete an existing item before uploading.`
+        `Maximum of ${MAX_MEDIA_ITEMS} media items allowed. Please delete an existing item before uploading.`
       );
     }
 
     const mediaType = mimetype.startsWith("video/") ? "video" : "image";
+    const folder = section === SECTIONS.MENU ? "menu-media" : "special-offers";
 
-    // Write to local disk: public/assets/special-offers/{timestamp}-{filename}
-    const url = await uploadFile(req.file, "special-offers", originalname);
+    // Write to local disk: public/assets/{folder}/{timestamp}-{filename}
+    const url = await uploadFile(req.file, folder, originalname);
 
-    const existing = await db
-      .collection(COLLECTION_NAMES.SPECIAL_OFFER_MEDIA)
-      .orderBy("order", "desc")
-      .limit(1)
-      .get();
-
-    const nextOrder = existing.empty ? 1 : (existing.docs[0].data().order || 0) + 1;
+    const maxOrder = existingSnap.docs.reduce(
+      (max, doc) => Math.max(max, doc.data().order || 0),
+      0
+    );
+    const nextOrder = maxOrder + 1;
 
     const docRef = await db.collection(COLLECTION_NAMES.SPECIAL_OFFER_MEDIA).add({
       url,
@@ -128,11 +140,12 @@ const uploadMedia = async (req, res) => {
       mimeType:   mimetype,
       sizeBytes:  size,
       order:      nextOrder,
+      section,
       uploadedAt: admin.firestore.FieldValue.serverTimestamp(),
       uploadedBy: req.user?.userId || "admin",
     });
 
-    invalidateMediaCache();
+    invalidateMediaCache(section);
 
     return successResponse(
       res,
@@ -143,6 +156,7 @@ const uploadMedia = async (req, res) => {
         type:  mediaType,
         title: title.trim() || originalname,
         order: nextOrder,
+        section,
       },
       "Media uploaded successfully"
     );
@@ -153,7 +167,7 @@ const uploadMedia = async (req, res) => {
 };
 
 /**
- * ADMIN — DELETE /admin/special-offer-media/:id
+ * ADMIN — DELETE /admin/special-offer-media/:id | /admin/menu-media/:id
  * Deletes the Firestore document and the file from local disk.
  */
 const deleteMedia = async (req, res) => {
@@ -167,7 +181,7 @@ const deleteMedia = async (req, res) => {
       return errorResponse(res, 404, "Media item not found");
     }
 
-    const { url } = doc.data();
+    const { url, section } = doc.data();
 
     // Delete the physical file from local disk (non-blocking — stale refs are harmless)
     try {
@@ -178,7 +192,7 @@ const deleteMedia = async (req, res) => {
 
     await docRef.delete();
 
-    invalidateMediaCache();
+    invalidateMediaCache(section);
 
     return successResponse(res, 200, { id }, "Media deleted successfully");
   } catch (error) {
@@ -188,7 +202,7 @@ const deleteMedia = async (req, res) => {
 };
 
 /**
- * ADMIN — PUT /admin/special-offer-media/reorder
+ * ADMIN — PUT /admin/special-offer-media/reorder | /admin/menu-media/reorder
  * Body: { items: [{ id, order }] }
  */
 const reorderMedia = async (req, res) => {
@@ -209,6 +223,9 @@ const reorderMedia = async (req, res) => {
 
     await batch.commit();
 
+    // Reordering can only happen within one section at a time client-side,
+    // but invalidating everything is cheap and avoids an extra read to find
+    // out which section these ids belong to.
     invalidateMediaCache();
 
     return successResponse(res, 200, null, "Media order updated successfully");
@@ -219,7 +236,8 @@ const reorderMedia = async (req, res) => {
 };
 
 module.exports = {
-  getSpecialOfferMedia,
+  SECTIONS,
+  getMediaList,
   uploadMedia,
   deleteMedia,
   reorderMedia,

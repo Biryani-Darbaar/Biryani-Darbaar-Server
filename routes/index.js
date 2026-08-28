@@ -15,7 +15,7 @@ const imageRoutes = require("./image.routes");
 const contactRoutes = require("./contact.routes");         // POST /contact (public)
 const walletRoutes = require("./wallet.routes");           // /wallet/* (auth required)
 const adminRoutes = require("./admin.routes");             // /admin/* (auth + admin role)
-const { getSpecialOfferMedia } = require("../controllers/specialOfferMedia.controller");
+const { SECTIONS, getMediaList } = require("../controllers/media.controller");
 const { asyncHandler } = require("../utils/response.util");
 
 /**
@@ -44,8 +44,9 @@ const initRoutes = (app) => {
   // Wallet (spin wheel + coin redemption) — JWT required inside walletRoutes
   app.use(walletRoutes);
 
-  // Special offer media — public read so user app can fetch without auth
-  app.get("/special-offer-media", asyncHandler(getSpecialOfferMedia));
+  // Special offer / menu media — public read so user app can fetch without auth
+  app.get("/special-offer-media", asyncHandler(getMediaList(SECTIONS.SPECIAL_OFFER)));
+  app.get("/menu-media", asyncHandler(getMediaList(SECTIONS.MENU)));
 
   // ── Admin routes (JWT + admin role required — enforced inside adminRoutes) ─
   app.use("/admin", adminRoutes);
