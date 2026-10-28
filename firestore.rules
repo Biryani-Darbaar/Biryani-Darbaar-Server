@@ -1,0 +1,18 @@
+rules_version = '2';
+
+// Client-side Firestore access (the website's live order tracking).
+// The API server uses the Admin SDK, which bypasses these rules entirely,
+// so anything not listed here is server-only by default.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // A signed-in customer may read their own orders (Firebase UID == userId).
+    match /order/{orderId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    match /users/{uid}/orders/{orderId} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
