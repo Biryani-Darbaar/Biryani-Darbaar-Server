@@ -7,6 +7,8 @@
  *  GET    /admin/orders                          – all orders (filterable)
  *  GET    /admin/orders/live                     – active/in-progress orders
  *  PATCH  /admin/orders/:id                      – update order status
+ *  GET    /admin/orders/pos-failed               – orders whose POS push failed
+ *  POST   /admin/orders/:id/pos-sync             – manually (re)push an order to the POS
  *  GET    /admin/users                           – all users
  *  GET    /admin/users/:id/orders               – single user + their orders
  *  PATCH  /admin/users/:id/wallet               – increase / decrease / reset wallet balance
@@ -45,6 +47,8 @@ const {
   updateOrderStatusAdmin,
   getAllUsersAdmin,
   getUserOrdersAdmin,
+  getPosFailedOrders,
+  retryPosSync,
 } = require("../controllers/adminDashboard.controller");
 
 const { updateUserWallet } = require("../controllers/wallet.controller");
@@ -88,6 +92,8 @@ router.get("/dashboard", asyncHandler(getDashboardStats));
 // ── Orders ────────────────────────────────────────────────────────────────────
 // NOTE: /orders/live must be declared BEFORE /orders/:id to avoid param collision
 router.get("/orders", asyncHandler(getAllOrdersAdmin));
+router.get("/orders/pos-failed", asyncHandler(getPosFailedOrders));
+router.post("/orders/:id/pos-sync", asyncHandler(retryPosSync));
 router.patch("/orders/:id", asyncHandler(updateOrderStatusAdmin));
 
 // ── Users ─────────────────────────────────────────────────────────────────────

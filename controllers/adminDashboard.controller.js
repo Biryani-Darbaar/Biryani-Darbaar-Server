@@ -1,6 +1,7 @@
 const { db } = require("../config/firebase.config");
 const { COLLECTION_NAMES } = require("../constants");
 const { successResponse, errorResponse } = require("../utils/response.util");
+const pos = require("../lib/pos.lib");
 
 // ── In-process caches ─────────────────────────────────────────────────────────
 //
@@ -383,7 +384,51 @@ const getUserOrdersAdmin = async (req, res) => {
   }
 };
 
+/**
+ * [Admin] GET /admin/orders/pos-failed
+ * Orders whose push to the Metrics ERP POS failed — drives the global admin alert.
+ */
+const getPosFailedOrders = async (req, res) => {
+  try {
+    const snap = await db
+      .collection(COLLECTION_NAMES.ORDER)
+      .where("posSync.status", "==", "failed")
+      .get();
+    const orders = snap.docs
+      .map((d) => normaliseOrder(d.id, d.data()))
+      .sort((a, b) => String(b.orderDate).localeCompare(String(a.orderDate)));
+    return successResponse(res, 200, { orders, total: orders.length });
+  } catch (error) {
+    console.error("getPosFailedOrders error:", error);
+    return errorResponse(res, 500, "Failed to fetch POS-failed orders", error);
+  }
+};
+
+/**
+ * [Admin] POST /admin/orders/:id/pos-sync
+ * Manually (re)push an order to the POS. No-op if it is already synced.
+ */
+const retryPosSync = async (req, res) => {
+  if (!pos.isEnabled()) {
+    return errorResponse(res, 400, "POS sync is disabled on this server (POS_ENABLED != true)");
+  }
+  const posSync = await pos.syncOrderToPos(req.params.id);
+  invalidateAdminCaches();
+  if (posSync.status === "in_progress") {
+    return errorResponse(res, 409, "A POS push for this order is already in progress — try again in a few seconds");
+  }
+  // 200 either way — the admin UI reads posSync.status to decide what to show
+  return successResponse(
+    res,
+    200,
+    { posSync },
+    posSync.status === "synced" ? `Sent to POS (#${posSync.posOrderId})` : `POS push failed: ${posSync.lastError}`
+  );
+};
+
 module.exports = {
+  getPosFailedOrders,
+  retryPosSync,
   getDashboardStats,
   getAllOrdersAdmin,
   updateOrderStatusAdmin,
