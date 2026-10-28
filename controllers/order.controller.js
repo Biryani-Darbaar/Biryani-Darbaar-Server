@@ -3,6 +3,7 @@ const { COLLECTION_NAMES } = require("../constants");
 const { getUserId } = require("../utils/session.util");
 const { calculateRewards } = require("../utils/calculations.util");
 const { errorResponse, successResponse, asyncHandler } = require("../utils/response.util");
+const pos = require("../lib/pos.lib");
 
 // ── Coin redemption constants (must match frontend + wallet.controller.js) ────
 const MIN_COINS_TO_REDEEM = 50;
@@ -84,6 +85,21 @@ const createOrder = asyncHandler(async (req, res) => {
     validatedCoinDiscount = roundCents(requestedCoins * COIN_TO_AUD);
   }
 
+  // ── Snapshot each item's POS mapping from the live dish doc ───────────────
+  // Done server-side (not from the cart) so stale carts can't send old/missing
+  // POS IDs, and so later retries use exactly what the order was placed with.
+  // ponytail: reads every dish (~80 docs) per order; key by category if the menu grows large.
+  const dishSnap = await db.collectionGroup(COLLECTION_NAMES.DISHES).get();
+  const dishById = new Map(dishSnap.docs.map((d) => [d.id, d.data()]));
+  const orderItems = (Array.isArray(orderData.orderItems) ? orderData.orderItems : []).map((item) => {
+    const dish = dishById.get(item.dishId) || {};
+    return {
+      ...item,
+      posItemId:   dish.posItemId   ?? null,
+      posItemName: dish.posItemName ?? null,
+    };
+  });
+
   // ── Build authoritative order document ────────────────────────────────────
   const now = new Date().toISOString();
 
@@ -92,6 +108,8 @@ const createOrder = asyncHandler(async (req, res) => {
     // malicious or stale frontend values cannot pollute the stored document.
     ...orderData,
     userId,
+    orderItems,
+    instructions:    String(orderData.instructions || "").trim().slice(0, 500),
     orderStatus:     orderData.orderStatus || "pending",
     orderDate:       now,
     paymentIntentId: orderData.paymentIntentId || null,
@@ -101,6 +119,7 @@ const createOrder = asyncHandler(async (req, res) => {
     coinDiscount:   validatedCoinDiscount,
     finalAmountPaid: roundCents(Number(orderData.totalPrice) || 0),
   };
+  if (pos.isEnabled()) orderStoreData.posSync = { status: "pending", attempts: 0 };
 
   // ── Atomic batch: order (×2) + wallet deduction ───────────────────────────
   //
@@ -148,8 +167,16 @@ const createOrder = asyncHandler(async (req, res) => {
     console.warn("[createOrder] Reward update skipped:", rewardErr.message);
   }
 
+  // ── Push to the Metrics ERP POS in the background ─────────────────────────
+  // The ERP takes ~8 s per order, so the customer is never made to wait on it
+  // (they've already paid). Up to 3 attempts; result lands on order.posSync,
+  // which the website's live order listener logs and admin surfaces/retries.
+  pos.syncOrderToPos(newOrderRef.id, { attempts: 3 });
+  const posSync = orderStoreData.posSync || { status: "disabled" };
+
   // Return everything the client needs for immediate UI sync
   return successResponse(res, 201, {
+    posSync,
     message:        "Order placed successfully",
     orderId:        newOrderRef.id,
     rewardsEarned,
