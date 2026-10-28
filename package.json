@@ -8,7 +8,7 @@
     "dev": "cross-env NODE_ENV=development nodemon index.js",
     "qa": "cross-env NODE_ENV=qa node index.js",
     "prod": "cross-env NODE_ENV=production node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test test/pos.payload.test.js"
   },
   "author": "Sarthak S Kumar",
   "license": "ISC",
