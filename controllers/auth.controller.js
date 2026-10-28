@@ -1,3 +1,4 @@
+const { normalisePhone } = require("../lib/pos.lib");
 const { admin, db } = require("../config/firebase.config");
 const bcrypt = require("bcryptjs");
 const { COLLECTION_NAMES } = require("../constants");
@@ -33,25 +34,10 @@ const isValidPassword = (password) => {
   return passwordRegex.test(password);
 };
 
-/**
- * Validate and normalise an Australian phone number.
- * Accepted formats (spaces allowed):
- *   04XX XXX XXX  |  +61 4XX XXX XXX  |  02/03/07/08 XXXX XXXX  |  +61 2/3/7/8 XXXX XXXX
- * Regex (after stripping spaces): /^(\+61[2-9]\d{8}|0[2-9]\d{8})$/
- */
-const isValidAustralianPhoneNumber = (phoneNumber) => {
-  const stripped = phoneNumber.replace(/\s+/g, "");
-  return /^(\+61[2-9]\d{8}|0[2-9]\d{8})$/.test(stripped);
-};
-
-/**
- * Normalise to E.164 format (+61XXXXXXXXX) for consistent Firestore storage.
- */
-const normalizePhoneNumber = (phoneNumber) => {
-  const stripped = phoneNumber.replace(/\s+/g, "");
-  if (stripped.startsWith("+61")) return stripped;
-  return "+61" + stripped.slice(1); // 0XXXXXXXXX → +61XXXXXXXXX
-};
+// Phones are stored as AU mobiles in 04XXXXXXXX — the format the POS requires.
+// normalisePhone also converts a pasted +61 4XX… number to 04XX….
+const normalizePhoneNumber = (phoneNumber) => normalisePhone(phoneNumber);
+const isValidAustralianPhoneNumber = (phoneNumber) => /^04\d{8}$/.test(normalisePhone(phoneNumber));
 
 /**
  * Register a new user with email and password
@@ -88,7 +74,7 @@ const register = asyncHandler(async (req, res) => {
     errors.push({
       field: "phoneNumber",
       message:
-        "Valid Australian phone number required (e.g. 0412 345 678 or +61 412 345 678)",
+        "Valid Australian mobile number required in the format 04XX XXX XXX",
     });
   }
   if (!address || address.trim().length < 10) {
@@ -130,7 +116,7 @@ const register = asyncHandler(async (req, res) => {
     displayName: fullName,
   });
 
-  // Normalise phone to E.164 before storing
+  // Normalise phone to 04XXXXXXXX before storing
   const normalizedPhone = normalizePhoneNumber(phoneNumber);
 
   // Store user data in Firestore
