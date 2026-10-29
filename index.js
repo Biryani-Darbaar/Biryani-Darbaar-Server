@@ -23,6 +23,13 @@ const app = express();
 // Trust proxy - important for getting correct client IP behind reverse proxy
 app.set("trust proxy", 1);
 
+// Stripe webhook needs the raw body for signature verification — before JSON parsing
+app.post(
+  "/stripe/webhook",
+  express.raw({ type: "application/json" }),
+  require("./controllers/payment.controller").stripeWebhook
+);
+
 // Middleware setup
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));

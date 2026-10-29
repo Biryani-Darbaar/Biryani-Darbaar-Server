@@ -2,51 +2,55 @@ const stripe = require("../config/stripe.config");
 const { db } = require("../config/firebase.config");
 const { COLLECTION_NAMES } = require("../constants");
 const { successResponse, asyncHandler } = require("../utils/response.util");
+const checkout = require("../lib/checkout.lib");
 const { ValidationError, PaymentError } = require("../utils/errors.util");
 
 /**
- * Create payment intent
+ * POST /checkout/quote — price the cart server-side (what the customer will pay)
+ */
+const quote = asyncHandler(async (req, res) => {
+  const result = await checkout.quoteCheckout(req.user.userId, req.body);
+  successResponse(res, 200, result);
+});
+
+/**
+ * POST /create-payment-intent — PaymentIntent for the server-quoted total.
+ * The client sends the cart, never an amount.
  */
 const createPaymentIntent = asyncHandler(async (req, res) => {
-  const { amount, currency } = req.body;
-
-  // Validation
-  if (!amount || amount <= 0) {
-    throw new ValidationError("Valid amount is required");
-  }
-
-  if (!currency) {
-    throw new ValidationError("Currency is required");
-  }
-
-  try {
-    // Convert dollars to cents (Stripe requires smallest currency unit)
-    const amountInCents = Math.round(amount * 100);
-
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: amountInCents,
-      currency: currency.toLowerCase(), // e.g., 'aud', 'usd'
-      metadata: {
-        userId: req.user?.userId || "guest",
-        timestamp: new Date().toISOString(),
-      },
-    });
-
-    successResponse(
-      res,
-      200,
-      {
-        clientSecret: paymentIntent.client_secret,
-        paymentIntentId: paymentIntent.id,
-      },
-      "Payment intent created successfully"
-    );
-  } catch (stripeError) {
-    throw new PaymentError(
-      stripeError.message || "Failed to create payment intent"
-    );
-  }
+  const result = await checkout.createCheckoutPayment(req.user.userId, req.body);
+  successResponse(res, 200, result, "Payment intent created successfully");
 });
+
+/**
+ * POST /stripe/webhook — Stripe calls this when a payment succeeds, so the order
+ * is created even if the customer closes the tab right after paying.
+ * Mounted with a raw body (before the JSON parser) for signature verification.
+ */
+const stripeWebhook = async (req, res) => {
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, req.headers["stripe-signature"], process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.warn("[stripe] webhook signature check failed:", err.message);
+    return res.status(400).send("Invalid signature");
+  }
+
+  if (event.type === "payment_intent.succeeded") {
+    try {
+      const { orderId, created } = await checkout.finalizeCheckout(event.data.object.id);
+      console.log(`[stripe] ${event.data.object.id} -> order ${orderId}${created ? " (created by webhook)" : ""}`);
+    } catch (err) {
+      if (err.statusCode === 404) {
+        // Not one of our checkout payments (e.g. created elsewhere) — nothing to do
+        return res.json({ received: true, ignored: true });
+      }
+      console.error("[stripe] webhook finalize failed:", err.message);
+      return res.status(500).send("Finalize failed"); // Stripe retries
+    }
+  }
+  res.json({ received: true });
+};
 
 /**
  * Confirm payment
@@ -156,6 +160,8 @@ const verifyPayment = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
+  quote,
+  stripeWebhook,
   createPaymentIntent,
   confirmPayment,
   getPaymentDetails,

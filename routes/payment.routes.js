@@ -4,6 +4,7 @@ const paymentController = require("../controllers/payment.controller");
 const { authenticateJWT } = require("../middlewares");
 
 // Payment routes - All require authentication
+router.post("/checkout/quote", authenticateJWT, paymentController.quote);
 router.post(
   "/create-payment-intent",
   authenticateJWT,
