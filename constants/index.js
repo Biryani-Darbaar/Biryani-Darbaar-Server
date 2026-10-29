@@ -19,6 +19,7 @@ const COLLECTION_NAMES = {
   // Admin / new features
   CONTACT_RESPONSES: "contactResponses",
   SPECIAL_OFFER_MEDIA: "specialOfferMedia",
+  CHECKOUTS: "checkouts", // server-priced quote per Stripe PaymentIntent
 };
 
 const MAX_MINI_GAMES = parseInt(process.env.MAX_MINI_GAMES)
