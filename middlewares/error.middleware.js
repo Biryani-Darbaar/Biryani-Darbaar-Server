@@ -1,10 +1,18 @@
 const { errorResponse } = require("../utils/response.util");
+const { NotFoundError } = require("../utils/errors.util");
 
 /**
  * Global error handling middleware
  * This should be the last middleware in the chain
  */
 const errorHandler = (err, req, res, next) => {
+  // Client errors (4xx) are expected traffic — log one line, not a stack trace
+  const status = err.statusCode || err.status;
+  if (status >= 400 && status < 500) {
+    console.warn(`[${status}] ${req.method} ${req.originalUrl} — ${err.message}`);
+    return errorResponse(res, err);
+  }
+
   // Log the error with request context
   console.error("[Error Handler]", {
     error: err.message,
@@ -23,10 +31,7 @@ const errorHandler = (err, req, res, next) => {
  * Handle 404 - Not Found errors
  */
 const notFoundHandler = (req, res, next) => {
-  const error = new Error(`Route not found: ${req.method} ${req.path}`);
-  error.statusCode = 404;
-  error.errorCode = "ROUTE_NOT_FOUND";
-  next(error);
+  next(new NotFoundError(`Route ${req.method} ${req.path}`));
 };
 
 /**

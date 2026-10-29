@@ -225,6 +225,19 @@ const handleErrorResponse = (res, error) => {
     });
   }
 
+  // Other client errors that carry a 4xx status (e.g. body-parser's 413
+  // "payload too large") keep their status instead of becoming a 500
+  const clientStatus = error.statusCode || error.status;
+  if (clientStatus >= 400 && clientStatus < 500) {
+    return res.status(clientStatus).json({
+      success: false,
+      statusCode: clientStatus,
+      errorCode: error.type || "CLIENT_ERROR",
+      message: error.expose === false ? "Bad request" : error.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
   // Default error handler for unexpected errors
   console.error(`[Unexpected Error] ${error.message}`, {
     stack: error.stack,
