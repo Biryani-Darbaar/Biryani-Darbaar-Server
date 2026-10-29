@@ -1,189 +1,25 @@
 const { db } = require("../config/firebase.config");
 const { COLLECTION_NAMES } = require("../constants");
 const { getUserId } = require("../utils/session.util");
-const { calculateRewards } = require("../utils/calculations.util");
 const { errorResponse, successResponse, asyncHandler } = require("../utils/response.util");
-const pos = require("../lib/pos.lib");
-
-// ── Coin redemption constants (must match frontend + wallet.controller.js) ────
-const MIN_COINS_TO_REDEEM = 50;
-const COIN_TO_AUD = 0.1; // 1 coin = $0.10 AUD
+const checkout = require("../lib/checkout.lib");
 
 /**
- * Round to 2 decimal places without floating-point drift.
- * e.g. roundCents(0.1 + 0.2) → 0.30 (not 0.30000000000000004)
- */
-const roundCents = (n) => Math.round(n * 100) / 100;
-
-/**
- * Create a new order.
+ * POST /orders — body: { paymentIntentId }
  *
- * Critical change: coin validation and deduction are now performed atomically
- * inside this function using a Firestore batch write. This guarantees:
- *   - Coins are NEVER deducted before the order is committed
- *   - If the batch fails, BOTH the order write AND the coin deduction roll back
- *   - The backend independently validates coinsUsed — we never trust the client
+ * Orders are only ever created from a Stripe PaymentIntent that has SUCCEEDED,
+ * for the exact server-quoted amount. Everything about the order (items, prices,
+ * fees, discounts, address) comes from the quote saved when the payment was
+ * created — nothing from this request body is trusted. Idempotent: calling it
+ * again (or the Stripe webhook firing) returns the same order.
  */
 const createOrder = asyncHandler(async (req, res) => {
-  const orderData = req.body;
-
-  // Prefer JWT-resolved userId (set by authenticateJWT middleware) over body
-  const userId = req.user?.userId || orderData.userId || getUserId(req);
-
-  if (!userId) {
-    return errorResponse(res, 401, "Authentication required to place an order");
-  }
-
-  // Fetch user document up-front — needed for both coin validation and rewards
-  const userRef = db.collection(COLLECTION_NAMES.USERS).doc(userId);
-  const userSnapshot = await userRef.get();
-
-  if (!userSnapshot.exists) {
-    return errorResponse(res, 404, "User not found");
-  }
-
-  const userData = userSnapshot.data();
-
-  // ── Server-side coin redemption validation ────────────────────────────────
-  //
-  // We NEVER trust the frontend coin values.  The wallet balance is read fresh
-  // from Firestore right now, and every rule is re-checked independently.
-  //
-  const requestedCoins =
-    typeof orderData.coinsUsed === "number" &&
-    Number.isInteger(orderData.coinsUsed) &&
-    orderData.coinsUsed > 0
-      ? orderData.coinsUsed
-      : 0;
-
-  let validatedCoinsUsed = 0;
-  let validatedCoinDiscount = 0; // AUD
-
-  if (requestedCoins > 0) {
-    const currentBalance = userData.walletBalance ?? 0;
-
-    // Rule 1 — minimum redemption
-    if (requestedCoins < MIN_COINS_TO_REDEEM) {
-      return errorResponse(
-        res,
-        400,
-        `Minimum ${MIN_COINS_TO_REDEEM} coins required for redemption. Requested: ${requestedCoins}`
-      );
-    }
-
-    // Rule 2 — cannot exceed wallet balance
-    if (requestedCoins > currentBalance) {
-      return errorResponse(
-        res,
-        400,
-        `Insufficient coins. Wallet balance: ${currentBalance}, requested: ${requestedCoins}`
-      );
-    }
-
-    // Rule 3 — server-side conversion (never trust frontend discountAmount)
-    validatedCoinsUsed    = requestedCoins;
-    validatedCoinDiscount = roundCents(requestedCoins * COIN_TO_AUD);
-  }
-
-  // ── Snapshot each item's POS mapping from the live dish doc ───────────────
-  // Done server-side (not from the cart) so stale carts can't send old/missing
-  // POS IDs, and so later retries use exactly what the order was placed with.
-  // ponytail: reads every dish (~80 docs) per order; key by category if the menu grows large.
-  const dishSnap = await db.collectionGroup(COLLECTION_NAMES.DISHES).get();
-  const dishById = new Map(dishSnap.docs.map((d) => [d.id, d.data()]));
-  const orderItems = (Array.isArray(orderData.orderItems) ? orderData.orderItems : []).map((item) => {
-    const dish = dishById.get(item.dishId) || {};
-    return {
-      ...item,
-      posItemId:   dish.posItemId   ?? null,
-      posItemName: dish.posItemName ?? null,
-    };
+  const { orderId, created } = await checkout.finalizeCheckout(req.body?.paymentIntentId, {
+    expectedUserId: req.user.userId,
   });
-
-  // ── Build authoritative order document ────────────────────────────────────
-  const now = new Date().toISOString();
-
-  const orderStoreData = {
-    // Spread the body first, then override every sensitive field below so
-    // malicious or stale frontend values cannot pollute the stored document.
-    ...orderData,
-    userId,
-    orderItems,
-    instructions:    String(orderData.instructions || "").trim().slice(0, 500),
-    orderStatus:     orderData.orderStatus || "pending",
-    orderDate:       now,
-    paymentIntentId: orderData.paymentIntentId || null,
-
-    // Financial fields — always set by the server, never from the client
-    coinsUsed:      validatedCoinsUsed,
-    coinDiscount:   validatedCoinDiscount,
-    finalAmountPaid: roundCents(Number(orderData.totalPrice) || 0),
-  };
-  if (pos.isEnabled()) orderStoreData.posSync = { status: "pending", attempts: 0 };
-
-  // ── Atomic batch: order (×2) + wallet deduction ───────────────────────────
-  //
-  // All three writes succeed together or all roll back.  This is the
-  // single source of truth for "an order was placed and coins were spent".
-  //
-  const newOrderRef = db
-    .collection(COLLECTION_NAMES.USERS)
-    .doc(userId)
-    .collection(COLLECTION_NAMES.ORDERS)
-    .doc();
-
-  const globalOrderRef = db
-    .collection(COLLECTION_NAMES.ORDER)
-    .doc(newOrderRef.id);
-
-  const batch = db.batch();
-  batch.set(newOrderRef,    orderStoreData);
-  batch.set(globalOrderRef, orderStoreData);
-
-  if (validatedCoinsUsed > 0) {
-    const newBalance = (userData.walletBalance ?? 0) - validatedCoinsUsed;
-    batch.update(userRef, { walletBalance: newBalance });
-  }
-
-  await batch.commit();
-
-  // ── Reward calculation — non-blocking ─────────────────────────────────────
-  // Reward failure must NEVER prevent order confirmation.
-  let rewardsEarned = 0;
-  let newRewardValue = userData.reward || 0;
-
-  try {
-    const rewardRef = db.collection(COLLECTION_NAMES.REWARDS).doc("rewardDoc");
-    const rewardDoc = await rewardRef.get();
-
-    if (rewardDoc.exists) {
-      const rewardData = rewardDoc.data();
-      rewardsEarned  = calculateRewards(orderData.totalPrice, rewardData.dollar);
-      newRewardValue = (userData.reward || 0) + rewardsEarned;
-      // update() is a merge-patch — it won't overwrite walletBalance
-      await userRef.update({ reward: newRewardValue });
-    }
-  } catch (rewardErr) {
-    console.warn("[createOrder] Reward update skipped:", rewardErr.message);
-  }
-
-  // ── Push to the Metrics ERP POS in the background ─────────────────────────
-  // The ERP takes ~8 s per order, so the customer is never made to wait on it
-  // (they've already paid). Up to 3 attempts; result lands on order.posSync,
-  // which the website's live order listener logs and admin surfaces/retries.
-  pos.syncOrderToPos(newOrderRef.id, { attempts: 3 });
-  const posSync = orderStoreData.posSync || { status: "disabled" };
-
-  // Return everything the client needs for immediate UI sync
-  return successResponse(res, 201, {
-    posSync,
-    message:        "Order placed successfully",
-    orderId:        newOrderRef.id,
-    rewardsEarned,
-    newRewardValue,
-    // Echo back server-validated coin info so the client can update its state
-    coinsUsed:      validatedCoinsUsed,
-    coinDiscount:   validatedCoinDiscount,
+  return successResponse(res, created ? 201 : 200, {
+    message: created ? "Order placed successfully" : "Order already placed",
+    orderId,
   });
 });
 
