@@ -1,4 +1,4 @@
-// Run: npm test   (node --test test/pos.payload.test.js)
+// Run: npm test
 const test = require("node:test");
 const assert = require("node:assert");
 const { buildPosPayload, normalisePhone } = require("../lib/pos.lib");
