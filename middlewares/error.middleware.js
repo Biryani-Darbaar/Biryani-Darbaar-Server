@@ -6,9 +6,9 @@ const { NotFoundError } = require("../utils/errors.util");
  * This should be the last middleware in the chain
  */
 const errorHandler = (err, req, res, next) => {
-  // Client errors (4xx) are expected traffic — log one line, not a stack trace
+  // Client errors (4xx) and "ordering paused" (503) are expected traffic — one line, no stack
   const status = err.statusCode || err.status;
-  if (status >= 400 && status < 500) {
+  if ((status >= 400 && status < 500) || status === 503) {
     console.warn(`[${status}] ${req.method} ${req.originalUrl} — ${err.message}`);
     return errorResponse(res, err);
   }
