@@ -9,6 +9,8 @@
  *  PATCH  /admin/orders/:id                      – update order status
  *  GET    /admin/orders/pos-failed               – orders whose POS push failed
  *  POST   /admin/orders/:id/pos-sync             – manually (re)push an order to the POS
+ *  GET    /admin/settings/ordering               – online ordering ON/OFF state
+ *  PUT    /admin/settings/ordering               – { open: boolean } turn online ordering on/off
  *  GET    /admin/users                           – all users
  *  GET    /admin/users/:id/orders               – single user + their orders
  *  PATCH  /admin/users/:id/wallet               – increase / decrease / reset wallet balance
@@ -81,7 +83,9 @@ const {
   deleteCategory,
 } = require("../controllers/category.controller");
 
-const { asyncHandler } = require("../utils/response.util");
+const { asyncHandler, successResponse } = require("../utils/response.util");
+const { ValidationError } = require("../utils/errors.util");
+const ordering = require("../lib/ordering.lib");
 
 // ── Guard: every admin route requires authentication + admin role ─────────────
 router.use(authenticateJWT, requireAdmin);
@@ -95,6 +99,16 @@ router.get("/orders", asyncHandler(getAllOrdersAdmin));
 router.get("/orders/pos-failed", asyncHandler(getPosFailedOrders));
 router.post("/orders/:id/pos-sync", asyncHandler(retryPosSync));
 router.patch("/orders/:id", asyncHandler(updateOrderStatusAdmin));
+
+// ── Online ordering switch ────────────────────────────────────────────────────
+router.get("/settings/ordering", asyncHandler(async (req, res) => {
+  successResponse(res, 200, await ordering.getOrdering());
+}));
+router.put("/settings/ordering", asyncHandler(async (req, res) => {
+  if (typeof req.body?.open !== "boolean") throw new ValidationError("`open` must be true or false");
+  successResponse(res, 200, await ordering.setOrdering(req.body.open, req.user?.userId),
+    req.body.open ? "Online ordering is ON" : "Online ordering is OFF");
+}));
 
 // ── Users ─────────────────────────────────────────────────────────────────────
 router.get("/users",                     asyncHandler(getAllUsersAdmin));
