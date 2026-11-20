@@ -249,61 +249,6 @@ const getAllDishes = async (req, res) => {
 };
 
 /**
- * Update a dish
- */
-const updateDish = async (req, res) => {
-  const { category, id: dishId } = req.params;
-  const dishData = JSON.parse(req.body.dishData);
-  const file = req.file;
-
-  try {
-    // Find category by name (handles both doc ID and name field matching)
-    const categoryDoc = await findCategoryByName(category);
-    if (!categoryDoc) {
-      return errorResponse(res, 404, `Category not found: ${category}`);
-    }
-
-    const dishRef = db
-      .collection(COLLECTION_NAMES.CATEGORY)
-      .doc(categoryDoc.id)
-      .collection(COLLECTION_NAMES.DISHES)
-      .doc(dishId);
-    const dishDoc = await dishRef.get();
-
-    if (!dishDoc.exists) {
-      return errorResponse(res, 404, "Dish not found");
-    }
-
-    let imageUrl = dishData.image;
-
-    if (file) {
-      // Remove the old image from disk (no-ops for old Firebase Storage URLs)
-      const oldImageUrl = dishDoc.data().image;
-      if (oldImageUrl) await deleteFile(oldImageUrl);
-
-      // Save new image to  public/assets/dishes/<category>/
-      imageUrl = await uploadFile(file, `dishes/${category}`, file.originalname);
-    }
-
-    // Prepare the updated dish data
-    const updatedDishData = {
-      ...dishData,
-      image: imageUrl,
-    };
-
-    // Update the dish document in Firestore
-    await dishRef.update(updatedDishData);
-
-    successResponse(res, 200, {
-      message: "Dish updated successfully",
-      imageUrl,
-    });
-  } catch (error) {
-    errorResponse(res, 500, "Failed to update dish", error);
-  }
-};
-
-/**
  * Delete a dish
  */
 const deleteDish = async (req, res) => {
@@ -431,49 +376,6 @@ const updateDishAdmin = async (req, res) => {
 };
 
 /**
- * Apply discount to a dish
- */
-const applyDiscount = async (req, res) => {
-  const { category, id: dishId } = req.params;
-  const { discount } = req.body;
-
-  if (!discount) {
-    return errorResponse(res, 400, "Discount value is required");
-  }
-
-  try {
-    // Find category by name (handles both doc ID and name field matching)
-    const categoryDoc = await findCategoryByName(category);
-    if (!categoryDoc) {
-      return errorResponse(res, 404, `Category not found: ${category}`);
-    }
-
-    const dishRef = db
-      .collection(COLLECTION_NAMES.CATEGORY)
-      .doc(categoryDoc.id)
-      .collection(COLLECTION_NAMES.DISHES)
-      .doc(dishId);
-    const dishDoc = await dishRef.get();
-
-    if (!dishDoc.exists) {
-      return errorResponse(res, 404, "Dish not found");
-    }
-
-    await dishRef.update({
-      offerAvailable: true,
-      discount: discount,
-    });
-
-    successResponse(res, 200, {
-      message: "Discount applied successfully",
-      discount,
-    });
-  } catch (error) {
-    errorResponse(res, 500, "Failed to apply discount", error);
-  }
-};
-
-/**
  * Get special offers
  */
 const getSpecialOffers = async (req, res) => {
@@ -516,56 +418,12 @@ const getSpecialOffers = async (req, res) => {
   }
 };
 
-/**
- * Toggle dish availability
- */
-const toggleAvailability = async (req, res) => {
-  const { category, id } = req.body;
-
-  if (!category || !id) {
-    return errorResponse(res, 400, "Category and ID are required");
-  }
-
-  try {
-    // Find category by name (handles both doc ID and name field matching)
-    const categoryDoc = await findCategoryByName(category);
-    if (!categoryDoc) {
-      return errorResponse(res, 404, `Category not found: ${category}`);
-    }
-
-    const dishRef = db
-      .collection(COLLECTION_NAMES.CATEGORY)
-      .doc(categoryDoc.id)
-      .collection(COLLECTION_NAMES.DISHES)
-      .doc(id);
-    const dishDoc = await dishRef.get();
-
-    if (!dishDoc.exists) {
-      return errorResponse(res, 404, "Dish not found");
-    }
-
-    const currentAvailability = dishDoc.data().available;
-    const newAvailability = !currentAvailability;
-
-    await dishRef.update({ available: newAvailability });
-
-    successResponse(res, 200, {
-      message: "Dish availability updated successfully",
-    });
-  } catch (error) {
-    errorResponse(res, 500, "Failed to update dish availability", error);
-  }
-};
-
 module.exports = {
   addDish,
   getDishesByCategory,
   getAllDishes,
-  updateDish,
   deleteDish,
   getDishesByCategoryAdmin,
   updateDishAdmin,
-  applyDiscount,
   getSpecialOffers,
-  toggleAvailability,
 };
