@@ -14,5 +14,11 @@ service cloud.firestore {
     match /users/{uid}/orders/{orderId} {
       allow read: if request.auth != null && request.auth.uid == uid;
     }
+
+    // Online ordering ON/OFF switch — the website listens to it live.
+    // Written only by the API (admin panel), never by clients.
+    match /settings/ordering {
+      allow read: if true;
+    }
   }
 }
