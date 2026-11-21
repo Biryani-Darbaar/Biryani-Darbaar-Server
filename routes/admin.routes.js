@@ -9,8 +9,8 @@
  *  PATCH  /admin/orders/:id                      – update order status
  *  GET    /admin/orders/pos-failed               – orders whose POS push failed
  *  POST   /admin/orders/:id/pos-sync             – manually (re)push an order to the POS
- *  GET    /admin/settings/ordering               – online ordering ON/OFF state
- *  PUT    /admin/settings/ordering               – { open: boolean } turn online ordering on/off
+ *  GET    /admin/settings/ordering               – online ordering + pickup/delivery ON/OFF state
+ *  PUT    /admin/settings/ordering               – { open?, pickup?, delivery? } (booleans) switch them
  *  GET    /admin/users                           – all users
  *  GET    /admin/users/:id/orders               – single user + their orders
  *  PATCH  /admin/users/:id/wallet               – increase / decrease / reset wallet balance
@@ -105,9 +105,12 @@ router.get("/settings/ordering", asyncHandler(async (req, res) => {
   successResponse(res, 200, await ordering.getOrdering());
 }));
 router.put("/settings/ordering", asyncHandler(async (req, res) => {
-  if (typeof req.body?.open !== "boolean") throw new ValidationError("`open` must be true or false");
-  successResponse(res, 200, await ordering.setOrdering(req.body.open, req.user?.userId),
-    req.body.open ? "Online ordering is ON" : "Online ordering is OFF");
+  const keys = ["open", "pickup", "delivery"].filter((k) => req.body?.[k] !== undefined);
+  if (!keys.length || keys.some((k) => typeof req.body[k] !== "boolean")) {
+    throw new ValidationError("Send `open`, `pickup` or `delivery` as true or false");
+  }
+  const patch = Object.fromEntries(keys.map((k) => [k, req.body[k]]));
+  successResponse(res, 200, await ordering.setOrdering(patch, req.user?.userId), "Ordering settings updated");
 }));
 
 // ── Users ─────────────────────────────────────────────────────────────────────
