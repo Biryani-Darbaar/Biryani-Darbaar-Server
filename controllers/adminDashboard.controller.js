@@ -23,10 +23,17 @@ const DASH_TTL_MS = 60 * 1000; // 60 seconds
 const _ordersCache = new Map(); // key → { data, ts }
 const ORDERS_TTL_MS = 15 * 1000; // 15 seconds
 
+// POS-failed alert is polled every 20 s by every open admin tab
+let _posFailedCache = null;
+let _posFailedCacheTs = 0;
+const POS_FAILED_TTL_MS = 30 * 1000; // 30 seconds
+
 const invalidateAdminCaches = () => {
   _dashCache   = null;
   _dashCacheTs = 0;
   _ordersCache.clear();
+  _posFailedCache = null;
+  _posFailedCacheTs = 0;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -390,6 +397,9 @@ const getUserOrdersAdmin = async (req, res) => {
  */
 const getPosFailedOrders = async (req, res) => {
   try {
+    if (_posFailedCache && Date.now() - _posFailedCacheTs < POS_FAILED_TTL_MS) {
+      return successResponse(res, 200, _posFailedCache);
+    }
     const snap = await db
       .collection(COLLECTION_NAMES.ORDER)
       .where("posSync.status", "==", "failed")
@@ -397,7 +407,9 @@ const getPosFailedOrders = async (req, res) => {
     const orders = snap.docs
       .map((d) => normaliseOrder(d.id, d.data()))
       .sort((a, b) => String(b.orderDate).localeCompare(String(a.orderDate)));
-    return successResponse(res, 200, { orders, total: orders.length });
+    _posFailedCache = { orders, total: orders.length };
+    _posFailedCacheTs = Date.now();
+    return successResponse(res, 200, _posFailedCache);
   } catch (error) {
     console.error("getPosFailedOrders error:", error);
     return errorResponse(res, 500, "Failed to fetch POS-failed orders", error);
